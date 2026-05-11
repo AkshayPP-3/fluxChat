@@ -4,15 +4,16 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
+
 import {specs} from "./config/swagger.js"
-import { spec } from "node:test/reporters";
 
 dotenv.config();
 
 const app = express();
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000
 
+app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
