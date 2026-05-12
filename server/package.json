@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "db": "docker exec -it fluxchat_local_db psql -U fluxchat_admin -d fluxchat"
+    "localdb": "docker exec -it fluxchat_local_db psql -U fluxchat_admin -d fluxchat"
   },
   "keywords": [],
   "author": "",

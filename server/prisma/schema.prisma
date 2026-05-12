@@ -11,9 +11,45 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-model User{
-  id          String   @id @default(cuid())
-  username    String   @unique
-  password    String
-  createdAt   DateTime @default(now())
+
+model User {
+  id            String                    @id @default(cuid())
+  firstname     String
+  lastname      String
+  username      String                    @unique
+  password      String
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  sentMessages  Message[]
+  conversations ConversationParticipant[]
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  isGlobal     Boolean                   @default(false)
+  createdAt    DateTime                  @default(now())
+  messages     Message[]
+  participants ConversationParticipant[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  userId         String
+  conversationId String
+  joinedAt       DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String @id @default(cuid())
+  content        String
+  senderId       String
+  conversationId String
+
+  createdAt    DateTime     @default(now())
+  sender       User         @relation(fields: [senderId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
 }
