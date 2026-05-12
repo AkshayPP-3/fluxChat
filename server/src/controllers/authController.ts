@@ -48,7 +48,7 @@ export const loginUser = async(req:Request,res:Response)=>{
     try{
         const{username,password} = req.body;
         if(!username || !password){
-            res.status(400).json({message:"All fields are required"})
+            return res.status(400).json({message:"All fields are required"})
         }
         const user = await prisma.user.findUnique({
             where: {username}
@@ -82,6 +82,31 @@ export const loginUser = async(req:Request,res:Response)=>{
                 username: user.username,
             },
         });
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export const getCurrentUser = async(req:Request,res:Response)=>{
+    try{
+        const userId = (req as any).userId;
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                username: true,
+                createdAt: true
+            }
+        })
+        if(!user){
+            return res.status(404).json({message: "user not found"})
+        }
+        return res.status(200).json(user);
     }catch(error){
         console.log(error);
         return res.status(500).json({message: "Internal server error"})
