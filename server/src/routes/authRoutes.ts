@@ -1,7 +1,6 @@
 import express from "express";
 import { registerUser,loginUser,getCurrentUser } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware.js";
-import { getEnabledCategories } from "node:trace_events";
 
 const router = express.Router();
 
