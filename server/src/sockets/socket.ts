@@ -23,7 +23,7 @@ export const initSocket = (server: any)=>{
             })
         })
 
-        socket.on("discount", ()=>{
+        socket.on("disconnect", ()=>{
             console.log("User disconnected: ",socket.id);
         })
     })
