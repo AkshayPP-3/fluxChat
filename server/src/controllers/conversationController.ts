@@ -14,20 +14,25 @@ export const getOrCreateConversation = async (req:Request,res:Response)=>{
         const existing = await prisma.conversation.findFirst({
             where: {
                 isGlobal: false,
-                participants: {
-                    every: {
-                        userId: {
-                            in: [userId,otherUserId]
+                AND: [
+                    {
+                        participants: {
+                            some: {userId}
                         }
+                    },
+                {
+                    participants: {
+                        some: {userId: otherUserId}
                     }
                 }
+                ]
             },
             include: {
                 participants: true
             }
         })
         if(existing){
-            return res.status(201).json(existing);
+            return res.status(200).json(existing);
         }
 
         //create new convo
@@ -67,14 +72,14 @@ export const getUserConversations = async (req:Request,res:Response)=>{
                 participants: true
             }
         })
-        return res.status(201).json(conversations);
+        return res.json(conversations);
     }catch(error){
         console.log(error);
         return res.status(500).json({message: "internal server error"})
     }
 }
 
-export const geetGlobalChat = async (req:Request,res:Response)=>{
+export const getGlobalChat = async (_:Request,res:Response)=>{
     try{
         const globalChat = await prisma.conversation.findFirst({
             where: {
@@ -88,7 +93,7 @@ export const geetGlobalChat = async (req:Request,res:Response)=>{
                 }
             }
         })
-        return res.status(201).json(globalChat);
+        return res.json(globalChat);
     }catch(error){
         console.log(error);
         return res.status(500).json({message: "Internal server error"});
