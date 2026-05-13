@@ -50,3 +50,26 @@ export const getOrCreateConversation = async (req:Request,res:Response)=>{
         return res.status(500).json({message: "Internal server error"});
     }
 }
+
+export const getUserConversations = async (req:Request,res:Response)=>{
+    try{
+        const userId = (req as any).userId;
+        const conversations = await prisma.conversation.findMany({
+            where: {
+                participants: {
+                    some: {
+                        userId
+                    }
+                }
+            },
+            include: {
+                messages: true,
+                participants: true
+            }
+        })
+        return res.status(201).json(conversations);
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message: "internal server error"})
+    }
+}
