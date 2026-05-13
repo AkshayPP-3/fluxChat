@@ -6,6 +6,7 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import authRoutes from "./routes/authRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js"
 
 import {specs} from "./config/swagger.js"
 
@@ -22,7 +23,7 @@ app.use(morgan("dev"));
 app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(specs));
 app.use("/api/auth",authRoutes);
 app.use("/api/conversations",conversationRoutes);
-
+app.use("/api/messages",messageRoutes);
 
 app.get("/test",(_,res)=>{
     res.send("Test message")
