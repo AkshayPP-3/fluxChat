@@ -1,0 +1,52 @@
+import type { Request,Response } from "express";
+import { prisma } from "../lib/prisma.js";
+
+export const getOrCreateConversation = async (req:Request,res:Response)=>{
+    try{
+        const userId = (req as any).userId;
+        const { otherUserId } = req.body;
+
+        if(!otherUserId){
+            return res.status(400).json({message:"invalid user id"})
+        }
+
+        //check if convo already exists
+        const existing = await prisma.conversation.findFirst({
+            where: {
+                isGlobal: false,
+                participants: {
+                    every: {
+                        userId: {
+                            in: [userId,otherUserId]
+                        }
+                    }
+                }
+            },
+            include: {
+                participants: true
+            }
+        })
+        if(existing){
+            return res.status(201).json(existing);
+        }
+
+        //create new convo
+        const conversation = await prisma.conversation.create({
+            data: {
+                participants: {
+                    create: [
+                       { userId},
+                       {userId: otherUserId}
+                    ]
+                }
+            },
+            include: {
+                participants: true
+            }
+        })
+        return res.status(201).json(conversation);
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({message: "Internal server error"});
+    }
+}
