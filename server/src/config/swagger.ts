@@ -2,7 +2,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 
 const option= {
     definition: {
-        opeanapi: "3.0.0",
+        openapi: "3.0.0",
         info: {
             title: "fluxChat API",
             version:"1.0.0",
