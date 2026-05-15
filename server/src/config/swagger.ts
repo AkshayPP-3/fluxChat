@@ -43,6 +43,45 @@ const option= {
                         },
                     },
                 },
+                Conversation: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                        },
+                        isGlobal: {
+                            type: "boolean",
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                        participants: {
+                            type: "array",
+                            items: {
+                                $ref: '#/components/schemas/ConversationParticipant',
+                            },
+                        },
+                    },
+                },
+                ConversationParticipant: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                        },
+                        userId: {
+                            type: "string",
+                        },
+                        conversationId: {
+                            type: "string",
+                        },
+                        joinedAt: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                    },
+                },
             },
         },
     },

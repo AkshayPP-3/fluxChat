@@ -8,6 +8,46 @@ import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/conversations:
+ *   post:
+ *     summary: Get or create a private conversation
+ *     tags:
+ *       - Conversations
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otherUserId
+ *             properties:
+ *               otherUserId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Existing conversation found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Conversation'
+ *       201:
+ *         description: New conversation created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Conversation'
+ *       400:
+ *         description: Invalid user ID
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/",protect,getOrCreateConversation);
 
 router.get("/",protect,getUserConversations);
