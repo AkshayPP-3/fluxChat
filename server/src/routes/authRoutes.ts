@@ -62,7 +62,37 @@ router.post("/register", registerUser);
  */
 router.post("/login", loginUser);
 
-
+/**
+ * @swagger
+ * /api/auth/getCurrentUser:
+ *   get:
+ *     summary: Get current user
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 firstname:
+ *                   type: string
+ *                 lastname:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/me", protect, getCurrentUser);
 
 export default router;
