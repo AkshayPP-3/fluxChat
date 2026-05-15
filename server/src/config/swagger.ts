@@ -13,6 +13,38 @@ const option= {
                 url: "http://localhost:3000",
             },
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+            schemas: {
+                User: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                        },
+                        firstname: {
+                            type: "string",
+                        },
+                        lastname: {
+                            type: "string",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                    },
+                },
+            },
+        },
     },
     apis: ["./src/routes/*.ts"],
 };

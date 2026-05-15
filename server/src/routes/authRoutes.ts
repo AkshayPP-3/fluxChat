@@ -21,6 +21,12 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - firstname
+ *               - lastname
+ *               - username
+ *               - password
+ *               - confirmPassword
  *             properties:
  *               firstname:
  *                 type: string
@@ -35,12 +41,25 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request (missing fields, passwords don't match, or username exists)
+ *       500:
+ *         description: Internal server error
  */
 router.post("/register", registerUser);
 
 /**
  * @swagger
- * /api/auth/loginUser:
+ * /api/auth/login:
  *   post:
  *     summary: Login user
  *     tags:
@@ -51,22 +70,40 @@ router.post("/register", registerUser);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - password
  *             properties:
  *               username:
  *                 type: string
  *               password:
  *                 type: string
  *     responses:
- *       201:
- *         description: Login successful 
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid credentials or missing fields
+ *       500:
+ *         description: Internal server error
  */
 router.post("/login", loginUser);
 
 /**
  * @swagger
- * /api/auth/getCurrentUser:
+ * /api/auth/me:
  *   get:
- *     summary: Get current user
+ *     summary: Get current authenticated user
  *     tags:
  *       - Auth
  *     security:
@@ -77,21 +114,11 @@ router.post("/login", loginUser);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 firstname:
- *                   type: string
- *                 lastname:
- *                   type: string
- *                 username:
- *                   type: string
- *                 createdAt:
- *                   type: string
- *                   format: date-time
+ *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
  */
 router.get("/me", protect, getCurrentUser);
 
