@@ -75,6 +75,27 @@ router.post("/",protect,getOrCreateConversation);
  */
 router.get("/",protect,getUserConversations);
 
+/**
+ * @swagger
+ * /api/conversations/global:
+ *   get:
+ *     summary: Get the global chat conversation
+ *     tags:
+ *       - Conversations
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Global conversation data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Conversation'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/global",protect,getGlobalChat);
 
 export default router;
