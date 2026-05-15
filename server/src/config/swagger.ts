@@ -82,6 +82,30 @@ const option= {
                         },
                     },
                 },
+                Message: {
+                    type: "object",
+                    properties: {
+                        id: {
+                            type: "string",
+                        },
+                        content: {
+                            type: "string",
+                        },
+                        senderId: {
+                            type: "string",
+                        },
+                        conversationId: {
+                            type: "string",
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                        sender: {
+                            $ref: '#/components/schemas/User',
+                        },
+                    },
+                },
             },
         },
     },
