@@ -1,5 +1,9 @@
 import express from "express";
-import { registerUser,loginUser,getCurrentUser } from "../controllers/authController";
+import {
+  registerUser,
+  loginUser,
+  getCurrentUser,
+} from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -34,8 +38,30 @@ const router = express.Router();
  */
 router.post("/register", registerUser);
 
-router.post("/login",loginUser);
+/**
+ * @swagger
+ * /api/auth/loginUser
+ *   post:
+ *     summary: Login user
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Login successful 
+ */
+router.post("/login", loginUser);
 
-router.get("/me",protect,getCurrentUser);
+router.get("/me", protect, getCurrentUser);
 
 export default router;
