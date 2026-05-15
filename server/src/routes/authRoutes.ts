@@ -40,7 +40,7 @@ router.post("/register", registerUser);
 
 /**
  * @swagger
- * /api/auth/loginUser
+ * /api/auth/loginUser:
  *   post:
  *     summary: Login user
  *     tags:
@@ -61,6 +61,8 @@ router.post("/register", registerUser);
  *         description: Login successful 
  */
 router.post("/login", loginUser);
+
+
 
 router.get("/me", protect, getCurrentUser);
 
