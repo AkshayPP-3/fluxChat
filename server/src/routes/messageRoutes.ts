@@ -45,8 +45,38 @@ const router = express.Router();
  */
 router.post("/",protect,sendMessage);
 
-
-
+/**
+ * @swagger
+ * /api/messages/{conversationId}:
+ *   get:
+ *     summary: Get all messages for a specific conversation
+ *     tags:
+ *       - Messages
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: conversationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the conversation
+ *     responses:
+ *       200:
+ *         description: List of messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Invalid conversation ID
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/:conversationId",protect,getMessages);
 
 export default router;
