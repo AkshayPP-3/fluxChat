@@ -50,6 +50,29 @@ const router = express.Router();
  */
 router.post("/",protect,getOrCreateConversation);
 
+/**
+ * @swagger
+ * /api/conversations:
+ *   get:
+ *     summary: Get all conversations for the authenticated user
+ *     tags:
+ *       - Conversations
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user conversations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Conversation'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/",protect,getUserConversations);
 
 router.get("/global",protect,getGlobalChat);
