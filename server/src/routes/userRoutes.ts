@@ -64,6 +64,36 @@ router.get("/",protect,getAllUsers);
  */
 router.get("/:id",protect,getUserById);
 
+/**
+ * @swagger
+ * /api/users/search:
+ *   get:
+ *     summary: Search for users
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The search query (username, firstname, or lastname)
+ *     responses:
+ *       200:
+ *         description: List of matched users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/search",protect,searchUsers);
 
 export default router;
