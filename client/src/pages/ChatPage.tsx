@@ -235,6 +235,10 @@ export default function ChatLayout() {
         }
       });
 
+      socket.on("message_deleted", (messageId: string) => {
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+      });
+
       return () => {
         socket.disconnect();
       };
@@ -264,7 +268,9 @@ export default function ChatLayout() {
 
 
   function deleteMessage(id: string) {
-    setMessages(prev => prev.filter(m => m.id !== id));
+    if (socketRef.current) {
+      socketRef.current.emit("delete_message", id);
+    }
   }
 
   function saveProfile() {
@@ -699,18 +705,46 @@ export default function ChatLayout() {
                           </div>
 
                           {/* Bubble */}
-                          <div style={{
-                            padding: "9px 14px",
-                            borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
-                            background: isMe ? tk.msgMe : tk.msgOther,
-                            border: isMe ? "none" : `1px solid ${tk.msgOtherBorder}`,
-                            color: isMe ? "#fff" : tk.text,
-                            fontSize: 14,
-                            lineHeight: 1.5,
-                            wordBreak: "break-word",
-                            boxShadow: isMe ? "0 4px 14px rgba(99,102,241,0.25)" : isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
-                          }}>
-                            {msg.text}
+                          <div style={{ position: "relative" }}>
+                            <div style={{
+                              padding: "9px 14px",
+                              borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
+                              background: isMe ? tk.msgMe : tk.msgOther,
+                              border: isMe ? "none" : `1px solid ${tk.msgOtherBorder}`,
+                              color: isMe ? "#fff" : tk.text,
+                              fontSize: 14,
+                              lineHeight: 1.5,
+                              wordBreak: "break-word",
+                              boxShadow: isMe ? "0 4px 14px rgba(99,102,241,0.25)" : isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+                            }}>
+                              {msg.text}
+                            </div>
+                            
+                            {user?.username === "admin" && (
+                              <button 
+                                onClick={() => deleteMessage(msg.id)}
+                                style={{
+                                  position: "absolute",
+                                  top: -10,
+                                  [isMe ? "right" : "left"]: -15,
+                                  background: tk.danger,
+                                  color: "#fff",
+                                  border: "none",
+                                  borderRadius: "50%",
+                                  width: 20,
+                                  height: 20,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: 12,
+                                  zIndex: 10
+                                }}
+                                title="Delete message"
+                              >
+                                ×
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

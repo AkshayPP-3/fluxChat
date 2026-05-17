@@ -59,6 +59,18 @@ export const initSocket = (server: any)=>{
             }
         })
 
+        socket.on("delete_message", async (messageId) => {
+            console.log("Socket - Received delete_message:", messageId);
+            try {
+                await prisma.message.delete({
+                    where: { id: messageId }
+                });
+                io.emit("message_deleted", messageId);
+            } catch (err) {
+                console.error("Socket Error - Failed to delete message:", err);
+            }
+        });
+
         socket.on("disconnect", ()=>{
             console.log("User disconnected: ",socket.id);
         })
