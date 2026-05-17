@@ -146,6 +146,7 @@ export default function ChatLayout() {
   });
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
   const tk = T[theme];
@@ -288,6 +289,21 @@ export default function ChatLayout() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   function sendMessage() {
     const t = draft.trim();
@@ -927,7 +943,7 @@ export default function ChatLayout() {
           {/* Input bar */}
           <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
             {showEmojiPicker && (
-              <div style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 1000 }}>
+              <div ref={emojiPickerRef} style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 1000 }}>
                 <EmojiPicker 
                   theme={isDark ? EmojiTheme.DARK : EmojiTheme.LIGHT} 
                   onEmojiClick={(emojiData) => {
