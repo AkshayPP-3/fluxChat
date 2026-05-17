@@ -120,8 +120,10 @@ export default function ChatLayout() {
   const [theme, setTheme]       = useState<Theme>("dark");
   const [panel, setPanel]       = useState<Panel>("global");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentConversation, setCurrentConversation] = useState<{ id: string; name: string } | null>({ id: "global_room", name: "Global Chat" });
   const [messages, setMessages] = useState<Message[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
+  const [userConversations, setUserConversations] = useState<any[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [draft, setDraft]       = useState("");
   const [] = useState<string | null>(null);
@@ -181,25 +183,40 @@ export default function ChatLayout() {
       })
       .catch(err => console.error("Error fetching users:", err));
 
-      // Fetch global chat messages
-      fetch("http://localhost:3000/api/messages/general_global", {
+      // Fetch global chat messages OR private chat messages
+      const convoId = currentConversation?.id === "global_room" ? "general_global" : currentConversation?.id;
+      if (convoId) {
+        fetch(`http://localhost:3000/api/messages/${convoId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const formattedMsgs = data.map((m: any) => ({
+              id: m.id,
+              senderId: m.senderId,
+              text: m.content,
+              timestamp: new Date(m.createdAt)
+            }));
+            setMessages(formattedMsgs);
+          }
+        })
+        .catch(err => console.error("Error fetching messages:", err));
+      }
+
+      // Fetch user's conversations (for friends list)
+      fetch("http://localhost:3000/api/conversations", {
         headers: { "Authorization": `Bearer ${token}` }
       })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          const formattedMsgs = data.map((m: any) => ({
-            id: m.id,
-            senderId: m.senderId,
-            text: m.content,
-            timestamp: new Date(m.createdAt)
-          }));
-          setMessages(formattedMsgs);
+          setUserConversations(data);
         }
       })
-      .catch(err => console.error("Error fetching messages:", err));
+      .catch(err => console.error("Error fetching conversations:", err));
     }
-  }, [token]);
+  }, [token, currentConversation]);
 
   // Socket setup for global chat
   useEffect(() => {
@@ -208,18 +225,18 @@ export default function ChatLayout() {
       socketRef.current = socket;
 
       socket.emit("user_online", user.id);
-      socket.emit("join_conversation", "global_room");
+      socket.emit("join_conversation", currentConversation?.id || "global_room");
 
       socket.on("update_online_users", (userIds: string[]) => {
         setOnlineUsers(userIds);
       });
 
       socket.on("receive_message", (data) => {
-        console.log("Global Chat - Received message from server:", data);
-        if (data.conversationId === "global_room") {
+        console.log("Socket - Received message:", data);
+        if (data.conversationId === currentConversation?.id) {
           setMessages(prev => {
-            // Simply append the message if it's from someone else
-            // Or if it's from me and not already in the list (though we removed optimistic UI)
+            const exists = prev.some(m => m.id === data.id);
+            if (exists) return prev;
             return [...prev, {
               id: data.id || `m${Date.now()}_${Math.random()}`,
               senderId: data.senderId,
@@ -246,10 +263,10 @@ export default function ChatLayout() {
 
   function sendMessage() {
     const t = draft.trim();
-    if (!t || !socketRef.current || !user) return;
+    if (!t || !socketRef.current || !user || !currentConversation) return;
 
     const msgData = {
-      conversationId: "global_room",
+      conversationId: currentConversation.id,
       message: t,
       senderId: user.id
     };
@@ -265,6 +282,27 @@ export default function ChatLayout() {
   function deleteMessage(id: string) {
     if (socketRef.current) {
       socketRef.current.emit("delete_message", id);
+    }
+  }
+
+  async function startPrivateChat(otherUser: User) {
+    try {
+      const res = await fetch("http://localhost:3000/api/conversations", {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ otherUserId: otherUser.id })
+      });
+      const data = await res.json();
+      if (data.id) {
+        setCurrentConversation({ id: data.id, name: `${otherUser.firstName} ${otherUser.lastName}` });
+        setPanel("friends"); // Switch to friends panel
+        setSelectedUser(null);
+      }
+    } catch (err) {
+      console.error("Error starting private chat:", err);
     }
   }
 
@@ -285,6 +323,8 @@ export default function ChatLayout() {
 
   // ── Left sidebar heading ──
   const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : "Profile";
+
+  const chatTitle = currentConversation?.name || "Global Chat";
 
   // ── Styles ──
   const s = {
@@ -438,7 +478,11 @@ export default function ChatLayout() {
           <div style={{ width:28, height:1, background:tk.border, margin:"4px 0" }} />
 
           {/* Global chat */}
-          <button className={`fc-nav-btn${panel==="global"?" active":""}`} onClick={()=>setPanel("global")} title="">
+          <button className={`fc-nav-btn${panel==="global"?" active":""}`} onClick={() => {
+            setPanel("global");
+            setSelectedUser(null);
+            setCurrentConversation({ id: "global_room", name: "Global Chat" });
+          }} title="">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
             </svg>
@@ -489,7 +533,7 @@ export default function ChatLayout() {
               </div>
             )}
             {panel === "friends" && (
-              <div style={{ fontSize:12, color:tk.textMuted, marginTop:3 }}>Manage your connections</div>
+              <div style={{ fontSize:12, color:tk.textMuted, marginTop:3 }}>{userConversations.length} active chats</div>
             )}
           </div>
 
@@ -542,9 +586,52 @@ export default function ChatLayout() {
             )}
 
             {panel === "friends" && (
-               <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted }}>
-                 <div style={{ fontSize: "14px", fontWeight: 600 }}>No friends yet</div>
-                 <div style={{ fontSize: "12px", marginTop: "4px" }}>Add users from Global Chat to start private conversations.</div>
+               <div className="fc-scroll" style={{ flex:1, overflowY:"auto" }}>
+                 {userConversations.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted }}>
+                      <div style={{ fontSize: "14px", fontWeight: 600 }}>No friends yet</div>
+                      <div style={{ fontSize: "12px", marginTop: "4px" }}>Add users from Global Chat to start private conversations.</div>
+                    </div>
+                 ) : (
+                    userConversations.map(conv => {
+                      const otherParticipant = conv.participants.find((p: any) => p.userId !== user?.id);
+                      const otherUser = registeredUsers.find(u => u.id === otherParticipant?.userId);
+                      if (!otherUser) return null;
+                      
+                      const isOnline = onlineUsers.includes(otherUser.id);
+                      const isActive = currentConversation?.id === conv.id;
+
+                      return (
+                        <div key={conv.id} 
+                          className="fc-user-row" 
+                          style={isActive ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
+                          onClick={() => {
+                            setCurrentConversation({ 
+                              id: conv.id, 
+                              name: `${otherUser.firstName} ${otherUser.lastName}` 
+                            });
+                          }}
+                        >
+                          <div style={{ position:"relative", flexShrink:0 }}>
+                            <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(otherUser.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
+                              {otherUser.avatar}
+                            </div>
+                            <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
+                          </div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:13, fontWeight:600, color:tk.text }}>
+                              {otherUser.firstName} {otherUser.lastName}
+                            </div>
+                            <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                              {conv.messages && conv.messages.length > 0 
+                                ? conv.messages[conv.messages.length - 1].content 
+                                : "No messages yet"}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                 )}
                </div>
             )}
 
@@ -582,7 +669,7 @@ export default function ChatLayout() {
                   </button>
                 ) : (
                   <button className="fc-edit-btn" style={{ background:"linear-gradient(135deg,#6366f1,#818cf8)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
-                    onClick={()=>{ /* Private chat logic */ }}>
+                    onClick={() => startPrivateChat(selectedUser)}>
                     Message
                   </button>
                 )}
@@ -639,8 +726,12 @@ export default function ChatLayout() {
                 </svg>
               </div>
               <div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:800, color:tk.text }}>Global Chat</div>
-                <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:800, color:tk.text }}>{chatTitle}</div>
+                {currentConversation?.id === "global_room" ? (
+                  <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
+                ) : (
+                  <div style={{ fontSize:11, color:tk.textMuted }}>Private Conversation</div>
+                )}
               </div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>

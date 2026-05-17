@@ -28,19 +28,23 @@ export const initSocket = (server: any)=>{
             console.log("Socket - Received send_message:", data);
             
             try {
-                // 1. Ensure the global_room exists in DB
-                let conversation = await prisma.conversation.findFirst({
-                    where: { isGlobal: true }
-                });
+                let conversationId = data.conversationId;
 
-                if (!conversation) {
-                    conversation = await prisma.conversation.create({
-                        data: {
-                            id: "general_global", // Constant ID for global chat
-                            isGlobal: true
-                        }
+                // 1. If it's a global message, ensure global convo exists
+                if (conversationId === "global_room") {
+                    let conversation = await prisma.conversation.findFirst({
+                        where: { isGlobal: true }
                     });
-                    console.log("Created global conversation in DB");
+
+                    if (!conversation) {
+                        conversation = await prisma.conversation.create({
+                            data: {
+                                id: "general_global",
+                                isGlobal: true
+                            }
+                        });
+                    }
+                    conversationId = conversation.id;
                 }
 
                 // 2. Save message to DB
@@ -48,18 +52,29 @@ export const initSocket = (server: any)=>{
                     data: {
                         content: data.message,
                         senderId: data.senderId,
-                        conversationId: conversation.id
+                        conversationId: conversationId
                     }
                 });
 
-                // 3. Broadcast to all users
-                io.emit("receive_message", {
-                    id: savedMsg.id,
-                    conversationId: "global_room", // Frontend uses this key
-                    message: savedMsg.content,
-                    senderId: savedMsg.senderId,
-                    createdAt: savedMsg.createdAt,
-                });
+                // 3. Broadcast
+                if (data.conversationId === "global_room") {
+                    io.emit("receive_message", {
+                        id: savedMsg.id,
+                        conversationId: "global_room",
+                        message: savedMsg.content,
+                        senderId: savedMsg.senderId,
+                        createdAt: savedMsg.createdAt,
+                    });
+                } else {
+                    // Private message - only to participants
+                    io.to(data.conversationId).emit("receive_message", {
+                        id: savedMsg.id,
+                        conversationId: data.conversationId,
+                        message: savedMsg.content,
+                        senderId: savedMsg.senderId,
+                        createdAt: savedMsg.createdAt,
+                    });
+                }
 
                 console.log("Message saved and broadcasted:", savedMsg.id);
             } catch (err) {
