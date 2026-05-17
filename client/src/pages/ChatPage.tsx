@@ -627,6 +627,20 @@ export default function ChatLayout() {
 
         {/* ══════════════ LEFT PANEL ══════════════ */}
         <div style={s.leftPanel}>
+          {/* Hidden File Input for Profile */}
+          <input
+            type="file"
+            id="profile-img-input"
+            style={{ display: "none" }}
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                console.log("Profile image selected:", file.name);
+                // Here you would typically upload the file
+              }
+            }}
+          />
 
           {/* Header */}
           <div style={{ padding:"20px 18px 14px", borderBottom:`1px solid ${tk.border}`, flexShrink:0 }}>
@@ -761,9 +775,51 @@ export default function ChatLayout() {
               <div style={{ padding:"16px 4px", display:"flex", flexDirection:"column", gap:20 }}>
                 {/* Avatar large */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, padding:"20px 0 10px" }}>
-                  <div style={{ width:72, height:72, borderRadius:22, background:avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, color:"#fff", position:"relative" }}>
+                  <div style={{ 
+                    width:72, 
+                    height:72, 
+                    borderRadius:22, 
+                    background:avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), 
+                    display:"flex", 
+                    alignItems:"center", 
+                    justifyContent:"center", 
+                    fontSize:24, 
+                    fontWeight:800, 
+                    color:"#fff", 
+                    position:"relative",
+                    overflow: "visible"
+                  }}>
                     {selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||"")}
-                    <div style={{ position:"absolute", bottom:2, right:2, width:14, height:14, borderRadius:"50%", background: (selectedUser ? onlineUsers.includes(selectedUser.id) : true) ? tk.online : tk.offline, border:`3px solid ${tk.surface}` }} />
+                    
+                    {/* Camera Button for current user */}
+                    {(!selectedUser || selectedUser.id === user?.id) && (
+                      <button 
+                        onClick={() => document.getElementById("profile-img-input")?.click()}
+                        style={{
+                          position: "absolute",
+                          bottom: -4,
+                          right: -4,
+                          width: 26,
+                          height: 26,
+                          borderRadius: "50%",
+                          background: tk.accent,
+                          border: `2px solid ${tk.surface}`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          color: "#fff",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                          zIndex: 5
+                        }}
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                        </svg>
+                      </button>
+                    )}
+
+                    <div style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:"50%", background: (selectedUser ? onlineUsers.includes(selectedUser.id) : true) ? tk.online : tk.offline, border:`3px solid ${tk.surface}`, zIndex: 4 }} />
                   </div>
                   <div>
                     <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`}</div>
