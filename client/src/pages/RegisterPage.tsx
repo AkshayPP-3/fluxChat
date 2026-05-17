@@ -98,6 +98,21 @@ function BubbleBackground() {
         }
         .nc-switch:hover { color: #a5b4fc; }
 
+        @media (max-width: 480px) {
+          .nc-card-responsive {
+            max-width: 100% !important;
+            border-radius: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+            padding: 20px !important;
+          }
+          .nc-mobile-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
         .nc-seg {
           height: 2px; flex: 1; border-radius: 2px;
           background: rgba(99,102,241,0.12);
@@ -260,7 +275,7 @@ export default function RegisterPage() {
     }}>
       <BubbleBackground />
 
-      <div style={{
+      <div className="nc-card-responsive" style={{
         position: "relative",
         width: "100%",
         maxWidth: 440,
@@ -282,7 +297,7 @@ export default function RegisterPage() {
               <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z" />
             </svg>
           </div>
-          <div style={{ marginTop:10, fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:"#e0e7ff", letterSpacing:"-0.01em" }}>
+          <div className="nc-mobile-grid" style={{ marginTop:10, fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:"#e0e7ff", letterSpacing:"-0.01em" }}>
             FluxChat
           </div>
           <div style={{ marginTop:4, fontSize:13, color:"rgba(148,163,184,0.6)" }}>
