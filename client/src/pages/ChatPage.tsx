@@ -20,7 +20,8 @@ interface User {
 interface Message {
   id: string;
   senderId: string;
-  text: string;
+  text?: string;
+  imageUrl?: string;
   timestamp: Date;
 }
 
@@ -129,6 +130,9 @@ export default function ChatLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [draft, setDraft]       = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [profile, setProfile]   = useState({
     id: user?.id || "",
@@ -146,6 +150,7 @@ export default function ChatLayout() {
   });
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
@@ -198,7 +203,8 @@ export default function ChatLayout() {
             const formattedMsgs = data.map((m: any) => ({
               id: m.id,
               senderId: m.senderId,
-              text: m.content,
+              text: m.content || "",
+              imageUrl: m.imageUrl,
               timestamp: new Date(m.createdAt)
             }));
             setMessages(formattedMsgs);
@@ -258,7 +264,8 @@ export default function ChatLayout() {
               return [...filtered, {
                 id: data.id || `m${Date.now()}_${Math.random()}`,
                 senderId: data.senderId,
-                text: data.message,
+                text: data.message || "",
+                imageUrl: data.imageUrl,
                 timestamp: new Date(data.createdAt || Date.now())
               }];
             });
@@ -305,13 +312,51 @@ export default function ChatLayout() {
     };
   }, [showEmojiPicker]);
 
-  function sendMessage() {
+  function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function sendMessage() {
     const t = draft.trim();
-    if (!t || !socketRef.current || !user || !currentConversation) return;
+    if ((!t && !selectedImage) || !socketRef.current || !user || !currentConversation) return;
+
+    let imageUrl = "";
+
+    if (selectedImage) {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("image", selectedImage);
+
+      try {
+        const res = await fetch("http://localhost:3000/api/messages/upload", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: formData
+        });
+        const data = await res.json();
+        imageUrl = data.imageUrl;
+      } catch (err) {
+        console.error("Error uploading image:", err);
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
 
     const msgData = {
       conversationId: currentConversation.id,
       message: t,
+      imageUrl: imageUrl,
       senderId: user.id
     };
 
@@ -324,10 +369,13 @@ export default function ChatLayout() {
       id: tempId,
       senderId: user.id,
       text: t,
+      imageUrl: imageUrl,
       timestamp: new Date()
     }]);
 
     setDraft("");
+    setSelectedImage(null);
+    setImagePreview(null);
     inputRef.current?.focus();
   }
 
@@ -890,6 +938,19 @@ export default function ChatLayout() {
                               wordBreak: "break-word",
                               boxShadow: isMe ? "0 4px 14px rgba(99,102,241,0.25)" : isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
                             }}>
+                              {msg.imageUrl && (
+                                <img 
+                                  src={`http://localhost:3000${msg.imageUrl}`} 
+                                  alt="Shared" 
+                                  style={{ 
+                                    maxWidth: "100%", 
+                                    maxHeight: "300px", 
+                                    borderRadius: "8px", 
+                                    marginBottom: msg.text ? "8px" : "0",
+                                    display: "block"
+                                  }} 
+                                />
+                              )}
                               {msg.text}
                             </div>
                             
@@ -942,6 +1003,16 @@ export default function ChatLayout() {
 
           {/* Input bar */}
           <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
+            {imagePreview && (
+              <div style={{ position: "absolute", bottom: "80px", left: "20px", background: tk.surface, padding: "8px", borderRadius: "12px", border: `1px solid ${tk.border}`, display: "flex", alignItems: "flex-start", gap: "8px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+                <img src={imagePreview} alt="Preview" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }} />
+                <button 
+                  onClick={() => { setSelectedImage(null); setImagePreview(null); }}
+                  style={{ background: tk.danger, color: "#fff", border: "none", borderRadius: "50%", width: "20px", height: "20px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" }}>
+                  ×
+                </button>
+              </div>
+            )}
             {showEmojiPicker && (
               <div ref={emojiPickerRef} style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 1000 }}>
                 <EmojiPicker 
@@ -991,7 +1062,26 @@ export default function ChatLayout() {
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
               />
 
-              <button className="fc-send-btn" onClick={sendMessage} disabled={!draft.trim()} style={{ opacity: draft.trim() ? 1 : 0.45 }}>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
+
+              <button 
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                disabled={isUploading}
+                style={{ background: "none", border: "none", cursor: "pointer", color: tk.textDim, display: "flex", alignItems: "center", transition: "color 0.15s", opacity: isUploading ? 0.5 : 1 }}
+                onMouseEnter={e => !isUploading && (e.currentTarget.style.color = tk.accent)}
+                onMouseLeave={e => !isUploading && (e.currentTarget.style.color = tk.textDim)}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </button>
+
+              <button className="fc-send-btn" onClick={sendMessage} disabled={isUploading || (!draft.trim() && !selectedImage)} style={{ opacity: (draft.trim() || selectedImage) ? 1 : 0.45 }}>
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
