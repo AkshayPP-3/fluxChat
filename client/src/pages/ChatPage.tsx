@@ -363,16 +363,6 @@ export default function ChatLayout() {
     console.log("Socket - Sending message:", msgData);
     socketRef.current.emit("send_message", msgData);
 
-    // Optimistically add message to UI
-    const tempId = `temp-${Date.now()}`;
-    setMessages(prev => [...prev, {
-      id: tempId,
-      senderId: user.id,
-      text: t,
-      imageUrl: imageUrl,
-      timestamp: new Date()
-    }]);
-
     setDraft("");
     setSelectedImage(null);
     setImagePreview(null);
