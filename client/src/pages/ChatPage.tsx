@@ -202,11 +202,20 @@ export default function ChatLayout() {
       socket.emit("join_conversation", "global_room");
 
       socket.on("receive_message", (data) => {
+        console.log("Global Chat - Received message:", data);
         if (data.conversationId === "global_room") {
           setMessages(prev => {
-            // Check if message already exists to avoid duplicates from sender
-            const exists = prev.some(m => m.id === data.id || (m.text === data.message && m.senderId === data.senderId && Math.abs(m.timestamp.getTime() - new Date(data.createdAt).getTime()) < 1000));
-            if (exists && data.senderId === user?.id) return prev; 
+            // Check if message already exists by ID or by strict content/sender/time match
+            // We use a shorter time window for optimistic match
+            const isDuplicate = prev.some(m => 
+              m.id === data.id || 
+              (m.senderId === data.senderId && m.text === data.message && Math.abs(m.timestamp.getTime() - new Date(data.createdAt).getTime()) < 2000)
+            );
+
+            if (isDuplicate) {
+              console.log("Duplicate message ignored:", data.message);
+              return prev;
+            }
             
             return [...prev, {
               id: data.id || `m${Date.now()}_${Math.random()}`,
