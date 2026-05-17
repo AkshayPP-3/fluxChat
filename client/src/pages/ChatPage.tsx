@@ -166,11 +166,16 @@ export default function ChatLayout() {
   // Fetch users
   useEffect(() => {
     if (token) {
+      console.log("Fetching users with token:", token);
       fetch("http://localhost:3000/api/users", {
         headers: { "Authorization": `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch users");
+        return res.json();
+      })
       .then(data => {
+        console.log("Fetched users:", data);
         if (Array.isArray(data)) {
           const formattedUsers = data.map((u: any) => ({
             id: u.id,
