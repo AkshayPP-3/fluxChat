@@ -190,6 +190,24 @@ export default function ChatLayout() {
         }
       })
       .catch(err => console.error("Error fetching users:", err));
+
+      // Fetch global chat messages
+      fetch("http://localhost:3000/api/messages/general_global", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const formattedMsgs = data.map((m: any) => ({
+            id: m.id,
+            senderId: m.senderId,
+            text: m.content,
+            timestamp: new Date(m.createdAt)
+          }));
+          setMessages(formattedMsgs);
+        }
+      })
+      .catch(err => console.error("Error fetching messages:", err));
     }
   }, [token]);
 
