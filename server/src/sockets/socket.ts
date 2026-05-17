@@ -16,7 +16,8 @@ export const initSocket = (server: any)=>{
 
         socket.on("send_message",(data)=>{
             console.log("Socket - Received send_message:", data);
-            io.to(data.conversationId).emit("receive_message",{
+            // Broadcast to EVERYONE connected to the server, in case room joining fails
+            io.emit("receive_message",{
                 conversationId: data.conversationId,
                 message:data.message,
                 senderId: data.senderId,
