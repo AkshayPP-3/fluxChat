@@ -14,6 +14,7 @@ interface User {
   lastName: string;
   username: string;
   avatar: string;
+  avatarUrl?: string;
   online: boolean;
 }
 
@@ -140,6 +141,7 @@ export default function ChatLayout() {
     lastName: user?.lastname || "",
     username: user?.username || "",
     avatar: user?.firstname?.[0] || "",
+    avatarUrl: (user as any)?.avatarUrl || "",
     online: true
   });
   const [editForm, setEditForm] = useState<EditForm>({
@@ -184,6 +186,7 @@ export default function ChatLayout() {
             lastName: u.lastname,
             username: u.username,
             avatar: u.firstname?.[0] || "",
+            avatarUrl: u.avatarUrl,
             online: true
           }));
           setRegisteredUsers(formattedUsers);
@@ -412,6 +415,35 @@ export default function ChatLayout() {
 
   const getU = (id: string) => getUser(id, registeredUsers);
 
+  async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !token) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      const res = await fetch("http://localhost:3000/api/user/avatar", {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.avatarUrl) {
+        setProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }));
+        // Update user in context/localStorage if necessary
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        storedUser.avatarUrl = data.avatarUrl;
+        localStorage.setItem("user", JSON.stringify(storedUser));
+        
+        // Refresh users list to show new avatar everywhere
+        setRegisteredUsers(prev => prev.map(u => u.id === profile.id ? { ...u, avatarUrl: data.avatarUrl } : u));
+      }
+    } catch (err) {
+      console.error("Error uploading avatar:", err);
+    }
+  }
+
   // ── Left sidebar heading ──
   const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : "Profile";
 
@@ -617,8 +649,8 @@ export default function ChatLayout() {
 
           {/* Profile */}
           <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile"); setEditMode(false);}} style={{ marginBottom:4, marginTop:6 }} title="">
-            <div style={{ width:34, height:34, borderRadius:10, background:avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
-              {(profile.firstName[0]||"")+(profile.lastName[0]||"")}
+            <div style={{ width:34, height:34, borderRadius:10, background:profile.avatarUrl ? `url(http://localhost:3000${profile.avatarUrl}) center/cover` : avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
+              {!profile.avatarUrl && (profile.firstName[0]||"")+(profile.lastName[0]||"")}
               <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
             </div>
             <span className="fc-tooltip">Profile</span>
@@ -633,13 +665,7 @@ export default function ChatLayout() {
             id="profile-img-input"
             style={{ display: "none" }}
             accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                console.log("Profile image selected:", file.name);
-                // Here you would typically upload the file
-              }
-            }}
+            onChange={handleAvatarUpload}
           />
 
           {/* Header */}
@@ -696,8 +722,8 @@ export default function ChatLayout() {
                         }}
                       >
                         <div style={{ position:"relative", flexShrink:0 }}>
-                          <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
-                            {u.avatar}
+                          <div style={{ width:38, height:38, borderRadius:11, background: u.avatarUrl ? `url(http://localhost:3000${u.avatarUrl}) center/cover` : avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
+                            {!u.avatarUrl && u.avatar}
                           </div>
                           <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
                         </div>
@@ -749,8 +775,8 @@ export default function ChatLayout() {
                           }}
                         >
                           <div style={{ position:"relative", flexShrink:0 }}>
-                            <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(otherUser.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
-                              {otherUser.avatar}
+                            <div style={{ width:38, height:38, borderRadius:11, background: otherUser.avatarUrl ? `url(http://localhost:3000${otherUser.avatarUrl}) center/cover` : avatarColors(otherUser.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
+                              {!otherUser.avatarUrl && otherUser.avatar}
                             </div>
                             <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
                           </div>
@@ -779,7 +805,7 @@ export default function ChatLayout() {
                     width:72, 
                     height:72, 
                     borderRadius:22, 
-                    background:avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), 
+                    background: (selectedUser ? selectedUser.avatarUrl : profile.avatarUrl) ? `url(http://localhost:3000${selectedUser ? selectedUser.avatarUrl : profile.avatarUrl}) center/cover` : avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), 
                     display:"flex", 
                     alignItems:"center", 
                     justifyContent:"center", 
@@ -789,7 +815,7 @@ export default function ChatLayout() {
                     position:"relative",
                     overflow: "visible"
                   }}>
-                    {selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||"")}
+                    {!(selectedUser ? selectedUser.avatarUrl : profile.avatarUrl) && (selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||""))}
                     
                     {/* Camera Button for current user */}
                     {(!selectedUser || selectedUser.id === user?.id) && (
@@ -944,8 +970,8 @@ export default function ChatLayout() {
                       {!isMe && (
                         <div style={{ width:32, flexShrink:0, marginRight:8, alignSelf:"flex-end", marginBottom:2 }}>
                           {showAvatar && (
-                            <div style={{ width:32, height:32, borderRadius:10, background:avatarColors(sender.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>
-                              {sender.avatar}
+                            <div style={{ width:32, height:32, borderRadius:10, background: sender.avatarUrl ? `url(http://localhost:3000${sender.avatarUrl}) center/cover` : avatarColors(sender.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>
+                              {!sender.avatarUrl && sender.avatar}
                             </div>
                           )}
                         </div>
@@ -1033,8 +1059,8 @@ export default function ChatLayout() {
                       {isMe && (
                         <div style={{ width:32, flexShrink:0, marginLeft:8, alignSelf:"flex-end", marginBottom:2 }}>
                           {showAvatar && (
-                            <div style={{ width:32, height:32, borderRadius:10, background:avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>
-                              {(profile.firstName[0]||"")+(profile.lastName[0]||"")}
+                            <div style={{ width:32, height:32, borderRadius:10, background: profile.avatarUrl ? `url(http://localhost:3000${profile.avatarUrl}) center/cover` : avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>
+                              {!profile.avatarUrl && (profile.firstName[0]||"")+(profile.lastName[0]||"")}
                             </div>
                           )}
                         </div>

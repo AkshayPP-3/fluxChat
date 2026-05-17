@@ -9,6 +9,7 @@ export const getAllUsers = async (_:Request,res: Response)=>{
                 firstname: true,
                 lastname: true,
                 username: true,
+                avatarUrl: true,
                 createdAt: true
             }
         })
@@ -31,6 +32,7 @@ export const getUserById = async(req:Request,res:Response)=>{
                 firstname: true,
                 lastname: true,
                 username: true,
+                avatarUrl: true,
                 createdAt: true
             }
         })
@@ -79,6 +81,7 @@ export const searchUsers = async (req: Request,res:Response)=>{
                 firstname: true,
                 lastname: true,
                 username: true,
+                avatarUrl: true
             }
         })
         return res.status(200).json(users);
@@ -87,3 +90,31 @@ export const searchUsers = async (req: Request,res:Response)=>{
         return res.status(500).json({message: "internal server error"});
     }
 }
+
+export const updateAvatar = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).userId;
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        const avatarUrl = `/uploads/${req.file.filename}`;
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { avatarUrl },
+            select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                username: true,
+                avatarUrl: true
+            }
+        });
+
+        return res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "internal server error" });
+    }
+};
