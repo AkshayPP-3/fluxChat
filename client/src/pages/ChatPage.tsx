@@ -141,7 +141,7 @@ export default function ChatLayout() {
     lastName: user?.lastname || "",
     username: user?.username || "",
     avatar: user?.firstname?.[0] || "",
-    avatarUrl: (user as any)?.avatarUrl || "",
+    avatarUrl: user?.avatarUrl || "",
     online: true
   });
   const [editForm, setEditForm] = useState<EditForm>({
