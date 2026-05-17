@@ -202,21 +202,11 @@ export default function ChatLayout() {
       socket.emit("join_conversation", "global_room");
 
       socket.on("receive_message", (data) => {
-        console.log("Global Chat - Received message:", data);
+        console.log("Global Chat - Received message from server:", data);
         if (data.conversationId === "global_room") {
           setMessages(prev => {
-            // Check if message already exists by ID or by strict content/sender/time match
-            // We use a shorter time window for optimistic match
-            const isDuplicate = prev.some(m => 
-              m.id === data.id || 
-              (m.senderId === data.senderId && m.text === data.message && Math.abs(m.timestamp.getTime() - new Date(data.createdAt).getTime()) < 2000)
-            );
-
-            if (isDuplicate) {
-              console.log("Duplicate message ignored:", data.message);
-              return prev;
-            }
-            
+            // Simply append the message if it's from someone else
+            // Or if it's from me and not already in the list (though we removed optimistic UI)
             return [...prev, {
               id: data.id || `m${Date.now()}_${Math.random()}`,
               senderId: data.senderId,
@@ -247,15 +237,8 @@ export default function ChatLayout() {
       senderId: user.id
     };
 
+    console.log("Socket - Sending message:", msgData);
     socketRef.current.emit("send_message", msgData);
-
-    // Optimistically add message to UI
-    setMessages(prev => [...prev, {
-      id: `m${Date.now()}_${Math.random()}`,
-      senderId: user.id,
-      text: t,
-      timestamp: new Date()
-    }]);
 
     setDraft("");
     inputRef.current?.focus();
