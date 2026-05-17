@@ -98,6 +98,18 @@ function BubbleBackground() {
         }
         .nc-switch:hover { color: #a5b4fc; }
 
+        @media (max-width: 480px) {
+          .nc-card-responsive {
+            max-width: 100% !important;
+            border-radius: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+            padding: 24px !important;
+          }
+        }
+
         .nc-seg {
           height: 2px; flex: 1; border-radius: 2px;
           background: rgba(99,102,241,0.12);
@@ -236,7 +248,7 @@ export default function LoginPage() {
       <BubbleBackground />
 
       {/* ── Card ── */}
-      <div style={{
+      <div className="nc-card-responsive" style={{
         position: "relative",
         width: "100%",
         maxWidth: 440,
