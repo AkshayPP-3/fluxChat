@@ -400,24 +400,49 @@ export default function ChatLayout() {
     }
   }
 
-  function saveProfile() {
-    // Also update registeredUsers so messages and sidebar update immediately
-    setRegisteredUsers(prev => prev.map(u => u.id === profile.id ? { 
-      ...u, 
-      firstName: editForm.firstName, 
-      lastName: editForm.lastName, 
-      username: editForm.username,
-      avatar: editForm.firstName?.[0] || ""
-    } : u));
-    
-    setProfile(prev => ({ 
-      ...prev, 
-      firstName: editForm.firstName, 
-      lastName: editForm.lastName, 
-      username: editForm.username,
-      avatar: editForm.firstName?.[0] || ""
-    }));
-    setEditMode(false);
+  async function saveProfile() {
+    if (!token) return;
+    try {
+      const res = await fetch("http://localhost:3000/api/user/profile", {
+        method: "PATCH",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          firstName: editForm.firstName,
+          lastName: editForm.lastName,
+          username: editForm.username
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update registeredUsers so messages and sidebar update immediately
+        setRegisteredUsers(prev => prev.map(u => u.id === profile.id ? { 
+          ...u, 
+          firstName: data.firstname, 
+          lastName: data.lastname, 
+          username: data.username,
+          avatar: data.firstname?.[0] || ""
+        } : u));
+        
+        setProfile(prev => ({ 
+          ...prev, 
+          firstName: data.firstname, 
+          lastName: data.lastname, 
+          username: data.username,
+          avatar: data.firstname?.[0] || ""
+        }));
+        setEditMode(false);
+
+        // Update localStorage user info if needed
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...storedUser, firstname: data.firstname, lastname: data.lastname, username: data.username }));
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
   }
 
   function handleLogout() {

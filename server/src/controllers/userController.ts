@@ -118,3 +118,31 @@ export const updateAvatar = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "internal server error" });
     }
 };
+
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).userId;
+        const { firstName, lastName, username } = req.body;
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { 
+                firstname: firstName, 
+                lastname: lastName, 
+                username 
+            },
+            select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                username: true,
+                avatarUrl: true
+            }
+        });
+
+        return res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "internal server error" });
+    }
+};

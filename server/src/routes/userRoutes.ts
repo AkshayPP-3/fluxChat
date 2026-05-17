@@ -4,7 +4,8 @@ import path from "path";
 import { getAllUsers,
          getUserById,
          searchUsers,
-         updateAvatar
+         updateAvatar,
+         updateProfile
  } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -22,6 +23,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.patch("/avatar", protect, upload.single("avatar"), updateAvatar);
+router.patch("/profile", protect, updateProfile);
 
 /**
  * @swagger
