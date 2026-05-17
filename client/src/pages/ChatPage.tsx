@@ -925,7 +925,19 @@ export default function ChatLayout() {
 
           {/* Input bar */}
           <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, background:tk.input, border:`1px solid ${tk.inputBorder}`, borderRadius:16, padding:"6px 8px 6px 16px", transition:"border 0.18s, box-shadow 0.18s" }}
+            <div 
+              style={{ 
+                display:"flex", 
+                alignItems:"center", 
+                gap:10, 
+                background:tk.input, 
+                border:`1px solid ${tk.inputBorder}`, 
+                borderRadius:16, 
+                padding:"6px 8px 6px 16px", 
+                transition:"border 0.18s, box-shadow 0.18s",
+                cursor: "text" 
+              }}
+              onClick={() => inputRef.current?.focus()}
               onFocus={e=>{(e.currentTarget as HTMLElement).style.borderColor=tk.accent;(e.currentTarget as HTMLElement).style.boxShadow=`0 0 0 3px ${tk.accentSoft}`;}}
               onBlur={e=>{(e.currentTarget as HTMLElement).style.borderColor=tk.inputBorder;(e.currentTarget as HTMLElement).style.boxShadow="none";}}>
 
