@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const css = (s: CSSProperties): CSSProperties => s;
 
@@ -178,13 +179,47 @@ function Field({ label, placeholder, type = "text", value, onChange, isPassword,
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     username: "", password: "",
   });
 
   const set = (k: keyof typeof form) => (v: string) =>
     setForm(p => ({ ...p, [k]: v }));
+
+  const handleLogin = async () => {
+    if (!form.username || !form.password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      login(data.user, data.token);
+      navigate("/chat");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{
@@ -235,6 +270,11 @@ export default function LoginPage() {
 
         {/* ── Form fields ── */}
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {error && (
+            <div style={{ color: "#ef4444", fontSize: 13, textAlign: "center", background: "rgba(239, 68, 68, 0.1)", padding: "8px", borderRadius: "8px" }}>
+              {error}
+            </div>
+          )}
 
           <Field label="Username" placeholder="Username" value={form.username} onChange={set("username")} />
 
@@ -248,8 +288,8 @@ export default function LoginPage() {
             <button className="nc-forgot">Forgot password?</button>
           </div>
 
-          <button className="nc-submit" style={{ marginTop:4 }} type="button">
-            Sign In
+          <button className="nc-submit" style={{ marginTop:4 }} type="button" onClick={handleLogin} disabled={loading}>
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </div>
 

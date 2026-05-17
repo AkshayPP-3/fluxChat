@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const css = (s: CSSProperties): CSSProperties => s;
 
@@ -179,8 +180,11 @@ function Field({ label, placeholder, type = "text", value, onChange, isPassword,
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  useAuth();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     firstName: "", lastName: "", username: "",
     password: "", confirmPassword: "",
@@ -188,6 +192,49 @@ export default function RegisterPage() {
 
   const set = (k: keyof typeof form) => (v: string) =>
     setForm(p => ({ ...p, [k]: v }));
+
+  const handleRegister = async () => {
+    if (!form.firstName || !form.lastName || !form.username || !form.password || !form.confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstname: form.firstName,
+          lastname: form.lastName,
+          username: form.username,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      // Automatically login after register or just redirect to login
+      // Local flow: server register controller doesn't return token, so redirect to login
+      navigate("/login");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const strength = (() => {
     const p = form.password; let s = 0;
@@ -244,6 +291,11 @@ export default function RegisterPage() {
         </div>
 
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {error && (
+            <div style={{ color: "#ef4444", fontSize: 13, textAlign: "center", background: "rgba(239, 68, 68, 0.1)", padding: "8px", borderRadius: "8px" }}>
+              {error}
+            </div>
+          )}
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <Field label="First Name" placeholder="First Name"   value={form.firstName} onChange={set("firstName")} />
@@ -270,8 +322,8 @@ export default function RegisterPage() {
             isPassword showPass={showConfirm} onTogglePass={() => setShowConfirm(v => !v)}
           />
 
-          <button className="nc-submit" style={{ marginTop:4 }} type="button">
-            Create Account
+          <button className="nc-submit" style={{ marginTop:4 }} type="button" onClick={handleRegister} disabled={loading}>
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </div>
     
