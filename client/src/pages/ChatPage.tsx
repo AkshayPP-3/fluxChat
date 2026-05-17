@@ -221,11 +221,16 @@ export default function ChatLayout() {
   // Socket setup for global chat
   useEffect(() => {
     if (token && user) {
-      const socket = io("http://localhost:3000");
+      const socket = io("http://localhost:3000", {
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
       socketRef.current = socket;
 
-      socket.emit("user_online", user.id);
-      socket.emit("join_conversation", currentConversation?.id || "global_room");
+      socket.on("connect", () => {
+        console.log("Socket connected:", socket.id);
+        socket.emit("user_online", user.id);
+      });
 
       socket.on("update_online_users", (userIds: string[]) => {
         setOnlineUsers(userIds);
@@ -233,18 +238,30 @@ export default function ChatLayout() {
 
       socket.on("receive_message", (data) => {
         console.log("Socket - Received message:", data);
-        if (data.conversationId === currentConversation?.id) {
-          setMessages(prev => {
-            const exists = prev.some(m => m.id === data.id);
-            if (exists) return prev;
-            return [...prev, {
-              id: data.id || `m${Date.now()}_${Math.random()}`,
-              senderId: data.senderId,
-              text: data.message,
-              timestamp: new Date(data.createdAt || Date.now())
-            }];
-          });
-        }
+        
+        // Use a functional update to get the LATEST currentConversation state
+        setCurrentConversation(curr => {
+          const isMatch = data.conversationId === curr?.id || 
+                        (data.conversationId === "global_room" && curr?.id === "global_room") ||
+                        (data.conversationId === "general_global" && curr?.id === "global_room");
+
+          if (isMatch) {
+            setMessages(prev => {
+              const exists = prev.some(m => m.id === data.id);
+              if (exists) return prev;
+              
+              const filtered = prev.filter(m => !(m.id.startsWith("temp-") && m.text === data.message && m.senderId === data.senderId));
+              
+              return [...filtered, {
+                id: data.id || `m${Date.now()}_${Math.random()}`,
+                senderId: data.senderId,
+                text: data.message,
+                timestamp: new Date(data.createdAt || Date.now())
+              }];
+            });
+          }
+          return curr;
+        });
       });
 
       socket.on("message_deleted", (messageId: string) => {
@@ -255,7 +272,16 @@ export default function ChatLayout() {
         socket.disconnect();
       };
     }
-  }, [token, user]);
+  }, [token, user]); // Remove currentConversation from here
+
+  // Separate effect to handle room joining
+  useEffect(() => {
+    if (socketRef.current?.connected) {
+      const convoId = currentConversation?.id || "global_room";
+      console.log("Socket - joining conversation:", convoId);
+      socketRef.current.emit("join_conversation", convoId);
+    }
+  }, [currentConversation]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -273,6 +299,15 @@ export default function ChatLayout() {
 
     console.log("Socket - Sending message:", msgData);
     socketRef.current.emit("send_message", msgData);
+
+    // Optimistically add message to UI
+    const tempId = `temp-${Date.now()}`;
+    setMessages(prev => [...prev, {
+      id: tempId,
+      senderId: user.id,
+      text: t,
+      timestamp: new Date()
+    }]);
 
     setDraft("");
     inputRef.current?.focus();
