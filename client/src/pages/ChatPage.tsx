@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Theme = "dark" | "light";
@@ -127,7 +128,7 @@ export default function ChatLayout() {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [draft, setDraft]       = useState("");
-  const [] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [profile, setProfile]   = useState({
     id: user?.id || "",
@@ -924,7 +925,19 @@ export default function ChatLayout() {
           </div>
 
           {/* Input bar */}
-          <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
+          <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
+            {showEmojiPicker && (
+              <div style={{ position: "absolute", bottom: "80px", left: "20px", zIndex: 1000 }}>
+                <EmojiPicker 
+                  theme={isDark ? EmojiTheme.DARK : EmojiTheme.LIGHT} 
+                  onEmojiClick={(emojiData) => {
+                    setDraft(prev => prev + emojiData.emoji);
+                    setShowEmojiPicker(false);
+                    inputRef.current?.focus();
+                  }}
+                />
+              </div>
+            )}
             <div 
               style={{ 
                 display:"flex", 
@@ -941,8 +954,13 @@ export default function ChatLayout() {
               onFocus={e=>{(e.currentTarget as HTMLElement).style.borderColor=tk.accent;(e.currentTarget as HTMLElement).style.boxShadow=`0 0 0 3px ${tk.accentSoft}`;}}
               onBlur={e=>{(e.currentTarget as HTMLElement).style.borderColor=tk.inputBorder;(e.currentTarget as HTMLElement).style.boxShadow="none";}}>
 
-              {/* Emoji placeholder */}
-              <button style={{ background:"none", border:"none", cursor:"pointer", color:tk.textDim, display:"flex", alignItems:"center", fontSize:18, flexShrink:0, transition:"color 0.15s" }}
+              {/* Emoji button */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowEmojiPicker(!showEmojiPicker);
+                }}
+                style={{ background:"none", border:"none", cursor:"pointer", color:tk.textDim, display:"flex", alignItems:"center", fontSize:18, flexShrink:0, transition:"color 0.15s" }}
                 onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color=tk.accent}
                 onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color=tk.textDim}>
                 😊
