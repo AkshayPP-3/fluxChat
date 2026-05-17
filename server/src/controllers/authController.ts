@@ -30,7 +30,16 @@ export const registerUser = async(req:Request,res:Response)=>{
                 password: hashedPassword
             }
         })
+
+        // Generate token so frontend can login immediately
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET as string,
+            { expiresIn: "7d" }
+        );
+
         return res.status(201).json({message:"user register successfully",
+            token,
             user: {
                 id: user.id,
                 firstname: user.firstname,

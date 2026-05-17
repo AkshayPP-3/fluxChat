@@ -470,8 +470,8 @@ export default function ChatLayout() {
           <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
             {(panel === "global" || panel === "friends") && (
               <>
-                {registeredUsers.filter(u => u.id !== user?.id).map(u => (
-                  <div key={u.id} className="fc-user-row">
+                {registeredUsers.map(u => (
+                  <div key={u.id} className="fc-user-row" style={u.id === user?.id ? { background: tk.hoverStrong } : {}}>
                     <div style={{ position:"relative", flexShrink:0 }}>
                       <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
                         {u.avatar}
@@ -479,10 +479,15 @@ export default function ChatLayout() {
                       <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:tk.text }}>{u.firstName} {u.lastName}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color:tk.text, display: "flex", alignItems: "center", gap: 5 }}>
+                        {u.firstName} {u.lastName}
+                        {u.id === user?.id && (
+                          <span style={{ fontSize:10, background:tk.accentSoft, color:tk.accent, padding:"1px 6px", borderRadius:4, fontWeight:700 }}>You</span>
+                        )}
+                      </div>
                       <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                     </div>
-                    {panel === "friends" && (
+                    {panel === "friends" && u.id !== user?.id && (
                       <button style={{ flexShrink:0, padding:"4px 10px", borderRadius:8, border:`1px solid ${tk.accent}`, background:"transparent", color:tk.accent, fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s" }}
                         onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=tk.accent;(e.currentTarget as HTMLElement).style.color="#fff";}}
                         onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="transparent";(e.currentTarget as HTMLElement).style.color=tk.accent;}}>

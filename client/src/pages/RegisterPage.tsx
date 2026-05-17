@@ -180,7 +180,7 @@ function Field({ label, placeholder, type = "text", value, onChange, isPassword,
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  useAuth();
+  const { login } = useAuth();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -226,9 +226,9 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      // Automatically login after register or just redirect to login
-      // Local flow: server register controller doesn't return token, so redirect to login
-      navigate("/login");
+      // Automatically login after register
+      login(data.user, data.token);
+      navigate("/chat");
     } catch (err: any) {
       setError(err.message);
     } finally {
