@@ -473,7 +473,7 @@ export default function ChatLayout() {
 
           {/* User list */}
           <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
-            {(panel === "global" || panel === "friends") && (
+            {panel === "global" && (
               <>
                 {registeredUsers.map(u => (
                   <div key={u.id} className="fc-user-row" style={u.id === user?.id ? { background: tk.hoverStrong } : {}}>
@@ -492,7 +492,7 @@ export default function ChatLayout() {
                       </div>
                       <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                     </div>
-                    {panel === "friends" && u.id !== user?.id && (
+                    {u.id !== user?.id && (
                       <button style={{ flexShrink:0, padding:"4px 10px", borderRadius:8, border:`1px solid ${tk.accent}`, background:"transparent", color:tk.accent, fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s" }}
                         onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=tk.accent;(e.currentTarget as HTMLElement).style.color="#fff";}}
                         onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="transparent";(e.currentTarget as HTMLElement).style.color=tk.accent;}}>
@@ -502,6 +502,13 @@ export default function ChatLayout() {
                   </div>
                 ))}
               </>
+            )}
+
+            {panel === "friends" && (
+               <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted }}>
+                 <div style={{ fontSize: "14px", fontWeight: 600 }}>No friends yet</div>
+                 <div style={{ fontSize: "12px", marginTop: "4px" }}>Add users from Global Chat to start private conversations.</div>
+               </div>
             )}
 
             {panel === "profile" && !editMode && (
