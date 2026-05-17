@@ -167,7 +167,7 @@ export default function ChatLayout() {
   useEffect(() => {
     if (token) {
       console.log("Fetching users with token:", token);
-      fetch("http://localhost:3000/api/users", {
+      fetch("http://localhost:3000/api/user", {
         headers: { "Authorization": `Bearer ${token}` }
       })
       .then(res => {
