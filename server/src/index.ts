@@ -13,9 +13,14 @@ import {specs} from "./config/swagger.js";
 import swaggerUi from "swagger-ui-express";
 
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import {initSocket} from "./sockets/socket.js";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -25,8 +30,12 @@ const server = http.createServer(app);
 
 app.use(express.json());
 app.use(cors());
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+}));
 app.use(morgan("dev"));
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(specs));
 

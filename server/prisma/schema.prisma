@@ -44,8 +44,9 @@ model ConversationParticipant {
 }
 
 model Message {
-  id             String @id @default(cuid())
-  content        String
+  id             String   @id @default(cuid())
+  content        String?
+  imageUrl       String?
   senderId       String
   conversationId String
 

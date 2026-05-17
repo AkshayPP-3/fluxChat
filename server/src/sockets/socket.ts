@@ -50,7 +50,8 @@ export const initSocket = (server: any)=>{
                 // 2. Save message to DB
                 const savedMsg = await prisma.message.create({
                     data: {
-                        content: data.message,
+                        content: data.message || null,
+                        imageUrl: data.imageUrl || null,
                         senderId: data.senderId,
                         conversationId: conversationId
                     }
@@ -62,6 +63,7 @@ export const initSocket = (server: any)=>{
                         id: savedMsg.id,
                         conversationId: "global_room",
                         message: savedMsg.content,
+                        imageUrl: savedMsg.imageUrl,
                         senderId: savedMsg.senderId,
                         createdAt: savedMsg.createdAt,
                     });
@@ -71,6 +73,7 @@ export const initSocket = (server: any)=>{
                         id: savedMsg.id,
                         conversationId: data.conversationId,
                         message: savedMsg.content,
+                        imageUrl: savedMsg.imageUrl,
                         senderId: savedMsg.senderId,
                         createdAt: savedMsg.createdAt,
                     });

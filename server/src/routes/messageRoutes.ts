@@ -1,8 +1,21 @@
 import express from "express";
-import { sendMessage,getMessages } from "../controllers/messageController";
+import multer from "multer";
+import path from "path";
+import { sendMessage, getMessages, uploadImage } from "../controllers/messageController";
 import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
  
 /**
  * @swagger
@@ -44,6 +57,7 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.post("/",protect,sendMessage);
+router.post("/upload", protect, upload.single("image"), uploadImage);
 
 /**
  * @swagger

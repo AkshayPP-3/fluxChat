@@ -6,7 +6,7 @@ export const sendMessage = async (req:Request,res:Response)=>{
         const userId = (req as any).userId;
         const { conversationId,content} = req.body;
 
-        if(!conversationId || !content){
+        if(!conversationId || (!content && !req.body.imageUrl)){
             return res.status(400).json({message: "all fields are required"})
         }
         const conversation = await prisma.conversation.findUnique({
@@ -17,7 +17,8 @@ export const sendMessage = async (req:Request,res:Response)=>{
         }
         const message = await prisma.message.create({
             data: {
-                content,
+                content: content || null,
+                imageUrl: req.body.imageUrl || null,
                 senderId: userId,
                 conversationId
             },
@@ -31,6 +32,19 @@ export const sendMessage = async (req:Request,res:Response)=>{
         return res.status(500).json({message: "internal server error"})
     }
 }
+
+export const uploadImage = async (req: Request, res: Response) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+        const imageUrl = `/uploads/${req.file.filename}`;
+        return res.status(200).json({ imageUrl });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 export const getMessages = async(req:Request,res:Response)=>{
     try{
