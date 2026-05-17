@@ -537,7 +537,7 @@ export default function ChatLayout() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&family=Inter:wght@700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body, #root { height: 100%; width: 100%; overflow: hidden; }
 
@@ -997,7 +997,16 @@ export default function ChatLayout() {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {/* header theme badge */}
-              <div style={{ fontSize:11, fontWeight:600, color:tk.accent, background:tk.accentSoft, padding:"4px 10px", borderRadius:20 }}>
+              <div style={{ 
+                fontSize: 18, 
+                fontWeight: 800, 
+                color: tk.accent, 
+                background: tk.accentSoft, 
+                padding: "6px 16px", 
+                borderRadius: 12, 
+                fontFamily: "'Inter', sans-serif", 
+                letterSpacing: "-0.02em" 
+              }}>
                 FluxChat
               </div>
             </div>
