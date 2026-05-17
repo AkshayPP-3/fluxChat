@@ -44,7 +44,8 @@ export const registerUser = async(req:Request,res:Response)=>{
                 id: user.id,
                 firstname: user.firstname,
                 lastname: user.lastname,
-                username: user.username
+                username: user.username,
+                avatarUrl: user.avatarUrl
             }
         })
     }catch(error){
@@ -89,6 +90,7 @@ export const loginUser = async(req:Request,res:Response)=>{
                 firstname: user.firstname,
                 lastname: user.lastname,
                 username: user.username,
+                avatarUrl: user.avatarUrl
             },
         });
     }catch(error){
@@ -109,6 +111,7 @@ export const getCurrentUser = async(req:Request,res:Response)=>{
                 firstname: true,
                 lastname: true,
                 username: true,
+                avatarUrl: true,
                 createdAt: true
             }
         })
