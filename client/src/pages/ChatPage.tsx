@@ -987,7 +987,7 @@ export default function ChatLayout() {
                 </svg>
               </div>
               <div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:800, color:tk.text }}>{chatTitle}</div>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em" }}>{chatTitle}</div>
                 {currentConversation?.id === "global_room" ? (
                   <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
                 ) : (
