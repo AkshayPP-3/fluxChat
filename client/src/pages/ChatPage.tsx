@@ -567,10 +567,12 @@ export default function ChatLayout() {
 
                 <div style={{ height:1, background:tk.border }} />
 
-                <button className="fc-edit-btn" style={{ background:"rgba(239,68,68,0.1)", color:tk.danger, border:`1px solid rgba(239,68,68,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }} onClick={handleLogout}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 00-2-2V5a2 2 0 002-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                  Log Out
-                </button>
+                {(!selectedUser || selectedUser.id === user?.id) && (
+                  <button className="fc-edit-btn" style={{ background:"rgba(239,68,68,0.1)", color:tk.danger, border:`1px solid rgba(239,68,68,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }} onClick={handleLogout}>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 00-2-2V5a2 2 0 002-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Log Out
+                  </button>
+                )}
               </div>
             )}
 
