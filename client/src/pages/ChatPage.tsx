@@ -30,19 +30,6 @@ interface EditForm {
   password: string;
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const USERS: User[] = [
-  { id: "u1", firstName: "Jordan",  lastName: "Lee",    username: "@jordanlee",  avatar: "JL", online: true  },
-  { id: "u2", firstName: "Priya",   lastName: "Sharma", username: "@priyasharma",avatar: "PS", online: true  },
-  { id: "u3", firstName: "Marcus",  lastName: "Chen",   username: "@marcuschen", avatar: "MC", online: false },
-  { id: "u4", firstName: "Sofia",   lastName: "Müller", username: "@sofiam",     avatar: "SM", online: true  },
-  { id: "u5", firstName: "Kenji",   lastName: "Tanaka", username: "@kenjit",     avatar: "KT", online: false },
-  { id: "u6", firstName: "Aisha",   lastName: "Okonkwo",username: "@aishao",     avatar: "AO", online: true  },
-];
-
-
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDayLabel(date: Date): string {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -642,7 +629,7 @@ export default function ChatLayout() {
               </div>
               <div>
                 <div style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:800, color:tk.text }}>Global Chat</div>
-                <div style={{ fontSize:11, color:tk.textMuted }}>{USERS.length + 1} members · {USERS.filter(u=>u.online).length + 1} online</div>
+                <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {registeredUsers.filter(u=>u.online).length} online</div>
               </div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
