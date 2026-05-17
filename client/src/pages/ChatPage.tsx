@@ -816,35 +816,6 @@ export default function ChatLayout() {
                     overflow: "visible"
                   }}>
                     {!(selectedUser ? selectedUser.avatarUrl : profile.avatarUrl) && (selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||""))}
-                    
-                    {/* Camera Button for current user */}
-                    {(!selectedUser || selectedUser.id === user?.id) && (
-                      <button 
-                        onClick={() => document.getElementById("profile-img-input")?.click()}
-                        style={{
-                          position: "absolute",
-                          bottom: -4,
-                          right: -4,
-                          width: 26,
-                          height: 26,
-                          borderRadius: "50%",
-                          background: tk.accent,
-                          border: `2px solid ${tk.surface}`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          color: "#fff",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                          zIndex: 5
-                        }}
-                      >
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-                        </svg>
-                      </button>
-                    )}
-
                     <div style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:"50%", background: (selectedUser ? onlineUsers.includes(selectedUser.id) : true) ? tk.online : tk.offline, border:`3px solid ${tk.surface}`, zIndex: 4 }} />
                   </div>
                   <div>
@@ -891,7 +862,53 @@ export default function ChatLayout() {
 
             {panel === "profile" && editMode && (
               <div style={{ padding:"12px 4px", display:"flex", flexDirection:"column", gap:14 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:tk.text, marginBottom:2 }}>Edit Profile</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:tk.text }}>Edit Profile</div>
+                  
+                  {/* Camera Button in Edit Mode */}
+                  <button 
+                    onClick={() => document.getElementById("profile-img-input")?.click()}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "10px",
+                      background: tk.accentSoft,
+                      border: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      color: tk.accent,
+                      transition: "all 0.15s"
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = tk.accent; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = tk.accentSoft; e.currentTarget.style.color = tk.accent; }}
+                    title="Change Profile Picture"
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Avatar Preview in Edit Mode */}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                  <div style={{ 
+                    width: 64, 
+                    height: 64, 
+                    borderRadius: 20, 
+                    background: profile.avatarUrl ? `url(http://localhost:3000${profile.avatarUrl}) center/cover` : avatarColors(profile.firstName), 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: "#fff",
+                    border: `2px solid ${tk.border}`
+                  }}>
+                    {!profile.avatarUrl && (profile.firstName[0]||"")+(profile.lastName[0]||"")}
+                  </div>
+                </div>
 
                 {(["firstName","lastName","username","password"] as (keyof EditForm)[]).map(field => (
                   <div key={field} style={{ display:"flex", flexDirection:"column", gap:5 }}>
