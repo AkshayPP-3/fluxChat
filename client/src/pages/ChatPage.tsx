@@ -125,6 +125,7 @@ export default function ChatLayout() {
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [userConversations, setUserConversations] = useState<any[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [draft, setDraft]       = useState("");
   const [] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -359,6 +360,21 @@ export default function ChatLayout() {
   // ── Left sidebar heading ──
   const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : "Profile";
 
+  const filteredUsers = registeredUsers.filter(u => 
+    u.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    u.lastName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    u.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredConversations = userConversations.filter(conv => {
+    const otherParticipant = conv.participants.find((p: any) => p.userId !== user?.id);
+    const otherUser = registeredUsers.find(u => u.id === otherParticipant?.userId);
+    if (!otherUser) return false;
+    return otherUser.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+           otherUser.lastName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+           otherUser.username.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   const chatTitle = currentConversation?.name || "Global Chat";
 
   // ── Styles ──
@@ -579,7 +595,13 @@ export default function ChatLayout() {
                 <svg style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", color:tk.textDim }} width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
                 </svg>
-                <input className="fc-input" style={{ width:"100%", paddingLeft:32, fontSize:13 }} placeholder="Search users..." />
+                <input 
+                  className="fc-input" 
+                  style={{ width:"100%", paddingLeft:32, fontSize:13 }} 
+                  placeholder="Search users..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -588,35 +610,41 @@ export default function ChatLayout() {
           <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
             {panel === "global" && (
               <>
-                {registeredUsers.map(u => {
-                  const isOnline = onlineUsers.includes(u.id);
-                  return (
-                    <div key={u.id} 
-                      className="fc-user-row" 
-                      style={u.id === selectedUser?.id ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
-                      onClick={() => {
-                         setSelectedUser(u);
-                         setPanel("profile");
-                      }}
-                    >
-                      <div style={{ position:"relative", flexShrink:0 }}>
-                        <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
-                          {u.avatar}
+                {filteredUsers.length === 0 ? (
+                  <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted, fontSize: "13px" }}>
+                    No users found matching "{searchQuery}"
+                  </div>
+                ) : (
+                  filteredUsers.map(u => {
+                    const isOnline = onlineUsers.includes(u.id);
+                    return (
+                      <div key={u.id} 
+                        className="fc-user-row" 
+                        style={u.id === selectedUser?.id ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
+                        onClick={() => {
+                           setSelectedUser(u);
+                           setPanel("profile");
+                        }}
+                      >
+                        <div style={{ position:"relative", flexShrink:0 }}>
+                          <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
+                            {u.avatar}
+                          </div>
+                          <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
                         </div>
-                        <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
-                      </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:13, fontWeight:600, color:tk.text, display: "flex", alignItems: "center", gap: 5 }}>
-                          {u.firstName} {u.lastName}
-                          {u.id === user?.id && (
-                            <span style={{ fontSize:10, background:tk.accentSoft, color:tk.accent, padding:"1px 6px", borderRadius:4, fontWeight:700 }}>You</span>
-                          )}
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:13, fontWeight:600, color:tk.text, display: "flex", alignItems: "center", gap: 5 }}>
+                            {u.firstName} {u.lastName}
+                            {u.id === user?.id && (
+                              <span style={{ fontSize:10, background:tk.accentSoft, color:tk.accent, padding:"1px 6px", borderRadius:4, fontWeight:700 }}>You</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                         </div>
-                        <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </>
             )}
 
@@ -627,8 +655,12 @@ export default function ChatLayout() {
                       <div style={{ fontSize: "14px", fontWeight: 600 }}>No friends yet</div>
                       <div style={{ fontSize: "12px", marginTop: "4px" }}>Add users from Global Chat to start private conversations.</div>
                     </div>
+                 ) : filteredConversations.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted, fontSize: "13px" }}>
+                      No chats found matching "{searchQuery}"
+                    </div>
                  ) : (
-                    userConversations.map(conv => {
+                    filteredConversations.map(conv => {
                       const otherParticipant = conv.participants.find((p: any) => p.userId !== user?.id);
                       const otherUser = registeredUsers.find(u => u.id === otherParticipant?.userId);
                       if (!otherUser) return null;
