@@ -203,12 +203,18 @@ export default function ChatLayout() {
 
       socket.on("receive_message", (data) => {
         if (data.conversationId === "global_room") {
-          setMessages(prev => [...prev, {
-            id: `m${Date.now()}_${Math.random()}`,
-            senderId: data.senderId,
-            text: data.message,
-            timestamp: new Date(data.createdAt || Date.now())
-          }]);
+          setMessages(prev => {
+            // Check if message already exists to avoid duplicates from sender
+            const exists = prev.some(m => m.id === data.id || (m.text === data.message && m.senderId === data.senderId && Math.abs(m.timestamp.getTime() - new Date(data.createdAt).getTime()) < 1000));
+            if (exists && data.senderId === user?.id) return prev; 
+            
+            return [...prev, {
+              id: data.id || `m${Date.now()}_${Math.random()}`,
+              senderId: data.senderId,
+              text: data.message,
+              timestamp: new Date(data.createdAt || Date.now())
+            }];
+          });
         }
       });
 
@@ -226,11 +232,21 @@ export default function ChatLayout() {
     const t = draft.trim();
     if (!t || !socketRef.current || !user) return;
 
-    socketRef.current.emit("send_message", {
+    const msgData = {
       conversationId: "global_room",
       message: t,
       senderId: user.id
-    });
+    };
+
+    socketRef.current.emit("send_message", msgData);
+
+    // Optimistically add message to UI
+    setMessages(prev => [...prev, {
+      id: `m${Date.now()}_${Math.random()}`,
+      senderId: user.id,
+      text: t,
+      timestamp: new Date()
+    }]);
 
     setDraft("");
     inputRef.current?.focus();
@@ -244,6 +260,12 @@ export default function ChatLayout() {
   function saveProfile() {
     setProfile(prev => ({ ...prev, firstName: editForm.firstName, lastName: editForm.lastName, username: editForm.username }));
     setEditMode(false);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
   }
 
   const grouped = groupByDay(messages);
@@ -479,7 +501,7 @@ export default function ChatLayout() {
                 {registeredUsers.map(u => (
                   <div key={u.id} 
                     className="fc-user-row" 
-                    style={u.id === (selectedUser?.id || (panel === "profile" && !selectedUser ? user?.id : "")) ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
+                    style={u.id === selectedUser?.id ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
                     onClick={() => {
                        setSelectedUser(u);
                        setPanel("profile");
