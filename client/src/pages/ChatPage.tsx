@@ -251,7 +251,7 @@ export default function ChatLayout() {
   const getU = (id: string) => getUser(id, registeredUsers);
 
   // ── Left sidebar heading ──
-  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`;
+  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : "Profile";
 
   // ── Styles ──
   const s = {
@@ -271,7 +271,7 @@ export default function ChatLayout() {
 
     // Left panel
     leftPanel: {
-      width: 280, display: "flex", flexDirection: "column" as const,
+      width: 320, display: "flex", flexDirection: "column" as const,
       background: tk.surface, borderRight: `1px solid ${tk.border}`,
       flexShrink: 0, overflow: "hidden",
     },
@@ -433,7 +433,7 @@ export default function ChatLayout() {
           </button>
 
           {/* Profile */}
-          <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile");}} style={{ marginBottom:4, marginTop:6 }} title="">
+          <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile"); setEditMode(false);}} style={{ marginBottom:4, marginTop:6 }} title="">
             <div style={{ width:34, height:34, borderRadius:10, background:avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
               {(profile.firstName[0]||"")+(profile.lastName[0]||"")}
               <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
