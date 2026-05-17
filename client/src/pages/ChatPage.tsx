@@ -401,7 +401,22 @@ export default function ChatLayout() {
   }
 
   function saveProfile() {
-    setProfile(prev => ({ ...prev, firstName: editForm.firstName, lastName: editForm.lastName, username: editForm.username }));
+    // Also update registeredUsers so messages and sidebar update immediately
+    setRegisteredUsers(prev => prev.map(u => u.id === profile.id ? { 
+      ...u, 
+      firstName: editForm.firstName, 
+      lastName: editForm.lastName, 
+      username: editForm.username,
+      avatar: editForm.firstName?.[0] || ""
+    } : u));
+    
+    setProfile(prev => ({ 
+      ...prev, 
+      firstName: editForm.firstName, 
+      lastName: editForm.lastName, 
+      username: editForm.username,
+      avatar: editForm.firstName?.[0] || ""
+    }));
     setEditMode(false);
   }
 
