@@ -130,6 +130,7 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const [theme, setTheme]       = useState<Theme>("dark");
   const [panel, setPanel]       = useState<Panel>("global");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [draft, setDraft]       = useState("");
@@ -250,7 +251,7 @@ export default function ChatLayout() {
   const getU = (id: string) => getUser(id, registeredUsers);
 
   // ── Left sidebar heading ──
-  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : `${profile.firstName} ${profile.lastName}`;
+  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`;
 
   // ── Styles ──
   const s = {
@@ -432,7 +433,7 @@ export default function ChatLayout() {
           </button>
 
           {/* Profile */}
-          <button className={`fc-nav-btn${panel==="profile"?" active":""}`} onClick={()=>setPanel("profile")} style={{ marginBottom:4, marginTop:6 }} title="">
+          <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile");}} style={{ marginBottom:4, marginTop:6 }} title="">
             <div style={{ width:34, height:34, borderRadius:10, background:avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
               {(profile.firstName[0]||"")+(profile.lastName[0]||"")}
               <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
@@ -476,7 +477,14 @@ export default function ChatLayout() {
             {panel === "global" && (
               <>
                 {registeredUsers.map(u => (
-                  <div key={u.id} className="fc-user-row" style={u.id === user?.id ? { background: tk.hoverStrong } : {}}>
+                  <div key={u.id} 
+                    className="fc-user-row" 
+                    style={u.id === (selectedUser?.id || (panel === "profile" && !selectedUser ? user?.id : "")) ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
+                    onClick={() => {
+                       setSelectedUser(u);
+                       setPanel("profile");
+                    }}
+                  >
                     <div style={{ position:"relative", flexShrink:0 }}>
                       <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
                         {u.avatar}
@@ -492,13 +500,6 @@ export default function ChatLayout() {
                       </div>
                       <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                     </div>
-                    {u.id !== user?.id && (
-                      <button style={{ flexShrink:0, padding:"4px 10px", borderRadius:8, border:`1px solid ${tk.accent}`, background:"transparent", color:tk.accent, fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.15s" }}
-                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=tk.accent;(e.currentTarget as HTMLElement).style.color="#fff";}}
-                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="transparent";(e.currentTarget as HTMLElement).style.color=tk.accent;}}>
-                        Message
-                      </button>
-                    )}
                   </div>
                 ))}
               </>
@@ -515,21 +516,21 @@ export default function ChatLayout() {
               <div style={{ padding:"16px 4px", display:"flex", flexDirection:"column", gap:20 }}>
                 {/* Avatar large */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, padding:"20px 0 10px" }}>
-                  <div style={{ width:72, height:72, borderRadius:22, background:avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, color:"#fff", position:"relative" }}>
-                    {(profile.firstName[0]||"")+(profile.lastName[0]||"")}
+                  <div style={{ width:72, height:72, borderRadius:22, background:avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, color:"#fff", position:"relative" }}>
+                    {selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||"")}
                     <div style={{ position:"absolute", bottom:2, right:2, width:14, height:14, borderRadius:"50%", background:tk.online, border:`3px solid ${tk.surface}` }} />
                   </div>
                   <div>
-                    <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{profile.firstName} {profile.lastName}</div>
-                    <div style={{ fontSize:12, color:tk.textMuted, textAlign:"center", marginTop:2 }}>{profile.username}</div>
+                    <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`}</div>
+                    <div style={{ fontSize:12, color:tk.textMuted, textAlign:"center", marginTop:2 }}>{selectedUser ? selectedUser.username : profile.username}</div>
                   </div>
                 </div>
 
                 {/* Info cards */}
                 {[
-                  { label:"First Name",  value: profile.firstName },
-                  { label:"Last Name",   value: profile.lastName  },
-                  { label:"Username",    value: profile.username  },
+                  { label:"First Name",  value: selectedUser ? selectedUser.firstName : profile.firstName },
+                  { label:"Last Name",   value: selectedUser ? selectedUser.lastName : profile.lastName  },
+                  { label:"Username",    value: selectedUser ? selectedUser.username : profile.username  },
                 ].map(row => (
                   <div key={row.label} style={{ background:tk.surfaceAlt, borderRadius:12, padding:"10px 14px", border:`1px solid ${tk.border}` }}>
                     <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:tk.textDim, marginBottom:3 }}>{row.label}</div>
@@ -537,16 +538,23 @@ export default function ChatLayout() {
                   </div>
                 ))}
 
-                <button className="fc-edit-btn" style={{ background:"linear-gradient(135deg,#6366f1,#818cf8)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
-                  onClick={()=>{ setEditForm({ firstName:profile.firstName, lastName:profile.lastName, username:profile.username, password:"" }); setEditMode(true); }}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Edit Profile
-                </button>
+                {!selectedUser || selectedUser.id === user?.id ? (
+                  <button className="fc-edit-btn" style={{ background:"linear-gradient(135deg,#6366f1,#818cf8)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
+                    onClick={()=>{ setEditForm({ firstName:profile.firstName, lastName:profile.lastName, username:profile.username, password:"" }); setEditMode(true); }}>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit Profile
+                  </button>
+                ) : (
+                  <button className="fc-edit-btn" style={{ background:"linear-gradient(135deg,#6366f1,#818cf8)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
+                    onClick={()=>{ /* Private chat logic */ }}>
+                    Message
+                  </button>
+                )}
 
                 <div style={{ height:1, background:tk.border }} />
 
-                <button className="fc-edit-btn" style={{ background:"rgba(239,68,68,0.1)", color:tk.danger, border:`1px solid rgba(239,68,68,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <button className="fc-edit-btn" style={{ background:"rgba(239,68,68,0.1)", color:tk.danger, border:`1px solid rgba(239,68,68,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }} onClick={handleLogout}>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 00-2-2V5a2 2 0 002-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                   Log Out
                 </button>
               </div>
