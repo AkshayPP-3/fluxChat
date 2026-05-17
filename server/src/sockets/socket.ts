@@ -8,8 +8,16 @@ export const initSocket = (server: any)=>{
             methods: ["GET","POST"]
         }
     })
+
+    const connectedUsers = new Map<string, string>(); // socketId -> userId
+
     io.on("connection",(socket)=>{
         console.log("user connected:",socket.id);
+
+        socket.on("user_online", (userId) => {
+            connectedUsers.set(socket.id, userId);
+            io.emit("update_online_users", Array.from(new Set(connectedUsers.values())));
+        });
 
         socket.on("join_conversation",(conversationId)=>{
             socket.join(conversationId);
@@ -73,6 +81,8 @@ export const initSocket = (server: any)=>{
 
         socket.on("disconnect", ()=>{
             console.log("User disconnected: ",socket.id);
+            connectedUsers.delete(socket.id);
+            io.emit("update_online_users", Array.from(new Set(connectedUsers.values())));
         })
     })
     return io;

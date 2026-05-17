@@ -87,6 +87,7 @@ const T = {
     scrollbar:  "rgba(99,102,241,0.2)",
     danger:     "#ef4444",
     online:     "#22c55e",
+    offline:    "#94a3b8",
   },
   light: {
     bg:         "#f0f2f8",
@@ -108,6 +109,7 @@ const T = {
     scrollbar:  "rgba(99,102,241,0.25)",
     danger:     "#ef4444",
     online:     "#22c55e",
+    offline:    "#94a3b8",
   },
 };
 
@@ -120,6 +122,7 @@ export default function ChatLayout() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [draft, setDraft]       = useState("");
   const [] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -204,7 +207,12 @@ export default function ChatLayout() {
       const socket = io("http://localhost:3000");
       socketRef.current = socket;
 
+      socket.emit("user_online", user.id);
       socket.emit("join_conversation", "global_room");
+
+      socket.on("update_online_users", (userIds: string[]) => {
+        setOnlineUsers(userIds);
+      });
 
       socket.on("receive_message", (data) => {
         console.log("Global Chat - Received message from server:", data);
@@ -501,32 +509,35 @@ export default function ChatLayout() {
           <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
             {panel === "global" && (
               <>
-                {registeredUsers.map(u => (
-                  <div key={u.id} 
-                    className="fc-user-row" 
-                    style={u.id === selectedUser?.id ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
-                    onClick={() => {
-                       setSelectedUser(u);
-                       setPanel("profile");
-                    }}
-                  >
-                    <div style={{ position:"relative", flexShrink:0 }}>
-                      <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
-                        {u.avatar}
+                {registeredUsers.map(u => {
+                  const isOnline = onlineUsers.includes(u.id);
+                  return (
+                    <div key={u.id} 
+                      className="fc-user-row" 
+                      style={u.id === selectedUser?.id ? { background: tk.hoverStrong, cursor: "pointer" } : { cursor: "pointer" }}
+                      onClick={() => {
+                         setSelectedUser(u);
+                         setPanel("profile");
+                      }}
+                    >
+                      <div style={{ position:"relative", flexShrink:0 }}>
+                        <div style={{ width:38, height:38, borderRadius:11, background:avatarColors(u.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#fff" }}>
+                          {u.avatar}
+                        </div>
+                        <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background: isOnline ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
                       </div>
-                      <div style={{ position:"absolute", bottom:0, right:0, width:10, height:10, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:tk.text, display: "flex", alignItems: "center", gap: 5 }}>
-                        {u.firstName} {u.lastName}
-                        {u.id === user?.id && (
-                          <span style={{ fontSize:10, background:tk.accentSoft, color:tk.accent, padding:"1px 6px", borderRadius:4, fontWeight:700 }}>You</span>
-                        )}
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:600, color:tk.text, display: "flex", alignItems: "center", gap: 5 }}>
+                          {u.firstName} {u.lastName}
+                          {u.id === user?.id && (
+                            <span style={{ fontSize:10, background:tk.accentSoft, color:tk.accent, padding:"1px 6px", borderRadius:4, fontWeight:700 }}>You</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                       </div>
-                      <div style={{ fontSize:11, color:tk.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.username}</div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
 
@@ -543,7 +554,7 @@ export default function ChatLayout() {
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, padding:"20px 0 10px" }}>
                   <div style={{ width:72, height:72, borderRadius:22, background:avatarColors(selectedUser ? selectedUser.firstName : profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, color:"#fff", position:"relative" }}>
                     {selectedUser ? (selectedUser.firstName[0]||"")+(selectedUser.lastName[0]||"") : (profile.firstName[0]||"")+(profile.lastName[0]||"")}
-                    <div style={{ position:"absolute", bottom:2, right:2, width:14, height:14, borderRadius:"50%", background:tk.online, border:`3px solid ${tk.surface}` }} />
+                    <div style={{ position:"absolute", bottom:2, right:2, width:14, height:14, borderRadius:"50%", background: (selectedUser ? onlineUsers.includes(selectedUser.id) : true) ? tk.online : tk.offline, border:`3px solid ${tk.surface}` }} />
                   </div>
                   <div>
                     <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`}</div>
@@ -629,7 +640,7 @@ export default function ChatLayout() {
               </div>
               <div>
                 <div style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:800, color:tk.text }}>Global Chat</div>
-                <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {registeredUsers.filter(u=>u.online).length} online</div>
+                <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
               </div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
