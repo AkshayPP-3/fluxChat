@@ -540,7 +540,7 @@ export default function ChatLayout() {
       borderTop: isMobile ? `1px solid ${tk.border}` : "none",
       gap: isMobile ? 0 : 6, 
       flexShrink: 0,
-      position: isMobile ? "fixed" : "relative",
+      position: (isMobile ? "fixed" : "relative") as React.CSSProperties["position"],
       bottom: isMobile ? 0 : "auto",
       left: isMobile ? 0 : "auto",
       zIndex: 1000,
