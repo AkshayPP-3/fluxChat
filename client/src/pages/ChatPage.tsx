@@ -531,7 +531,7 @@ export default function ChatLayout() {
       width: isMobile ? "100%" : 68, 
       height: isMobile ? 65 : "100%",
       display: (isMobile && mobileView === "chat") ? "none" : "flex", 
-      flexDirection: isMobile ? "row" : "column" as const,
+      flexDirection: (isMobile ? "row" : "column") as React.CSSProperties["flexDirection"],
       alignItems: "center", 
       justifyContent: isMobile ? "space-around" : "flex-start",
       padding: isMobile ? "0 10px" : "16px 0",
