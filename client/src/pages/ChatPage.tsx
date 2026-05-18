@@ -150,11 +150,24 @@ export default function ChatLayout() {
     username: user?.username || "",
     password: ""
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+
+  // Track window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const tk = T[theme];
   const isDark = theme === "dark";
@@ -394,6 +407,7 @@ export default function ChatLayout() {
         setCurrentConversation({ id: data.id, name: `${otherUser.firstName} ${otherUser.lastName}` });
         setPanel("friends"); // Switch to friends panel
         setSelectedUser(null);
+        if (isMobile) setMobileView("chat");
       }
     } catch (err) {
       console.error("Error starting private chat:", err);
@@ -514,23 +528,45 @@ export default function ChatLayout() {
 
     // Left nav rail
     rail: {
-      width: 68, display: "flex", flexDirection: "column" as const,
-      alignItems: "center", padding: "16px 0",
-      background: tk.surface, borderRight: `1px solid ${tk.border}`,
-      gap: 6, flexShrink: 0,
+      width: isMobile ? "100%" : 68, 
+      height: isMobile ? 65 : "100%",
+      display: (isMobile && mobileView === "chat") ? "none" : "flex", 
+      flexDirection: isMobile ? "row" : "column" as const,
+      alignItems: "center", 
+      justifyContent: isMobile ? "space-around" : "flex-start",
+      padding: isMobile ? "0 10px" : "16px 0",
+      background: tk.surface, 
+      borderRight: isMobile ? "none" : `1px solid ${tk.border}`,
+      borderTop: isMobile ? `1px solid ${tk.border}` : "none",
+      gap: isMobile ? 0 : 6, 
+      flexShrink: 0,
+      position: isMobile ? "fixed" : "relative",
+      bottom: isMobile ? 0 : "auto",
+      left: isMobile ? 0 : "auto",
+      zIndex: 1000,
     },
 
     // Left panel
     leftPanel: {
-      width: 320, display: "flex", flexDirection: "column" as const,
-      background: tk.surface, borderRight: `1px solid ${tk.border}`,
-      flexShrink: 0, overflow: "hidden",
+      width: isMobile ? "100%" : 320, 
+      display: (isMobile && mobileView === "chat") ? "none" : "flex", 
+      flexDirection: "column" as const,
+      background: tk.surface, 
+      borderRight: `1px solid ${tk.border}`,
+      flexShrink: 0, 
+      overflow: "hidden",
+      paddingBottom: isMobile ? 65 : 0,
     },
 
     // Chat area
     chatArea: {
-      flex: 1, display: "flex", flexDirection: "column" as const,
-      background: tk.bg, overflow: "hidden", minWidth: 0,
+      flex: 1, 
+      display: (isMobile && mobileView === "list") ? "none" : "flex", 
+      flexDirection: "column" as const,
+      background: tk.bg, 
+      overflow: "hidden", 
+      minWidth: 0,
+      order: isMobile ? 1 : 3,
     },
   };
 
@@ -568,8 +604,13 @@ export default function ChatLayout() {
         .fc-nav-btn:hover { background: ${tk.hoverStrong}; color: ${tk.accent}; }
         .fc-nav-btn.active { background: ${tk.accentSoft}; color: ${tk.accent}; }
         .fc-nav-btn.active::before {
-          content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
-          width: 3px; height: 22px; border-radius: 0 3px 3px 0;
+          content: ''; position: absolute; 
+          left: ${isMobile ? "50%" : "-8px"}; 
+          top: ${isMobile ? "-8px" : "50%"}; 
+          transform: ${isMobile ? "translateX(-50%)" : "translateY(-50%)"};
+          width: ${isMobile ? "22px" : "3px"}; 
+          height: ${isMobile ? "3px" : "22px"}; 
+          border-radius: ${isMobile ? "0 0 3px 3px" : "0 3px 3px 0"};
           background: ${tk.accent};
         }
 
@@ -642,45 +683,52 @@ export default function ChatLayout() {
         .fc-msg-anim { animation: msgIn 0.2s ease both; }
       `}</style>
 
-      <div style={s.root}>
+      <div style={{ ...s.root, flexDirection: isMobile ? "column" : "row" }}>
 
         {/* ══════════════ RAIL (leftmost icon bar) ══════════════ */}
         <div style={s.rail}>
           {/* Logo */}
-          <div style={{ width:40, height:40, background:"linear-gradient(135deg,#6366f1,#06b6d4)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:8, flexShrink:0 }}>
-            <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24">
-              <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z"/>
-            </svg>
-          </div>
-
-          <div style={{ width:28, height:1, background:tk.border, margin:"4px 0" }} />
+          {!isMobile && (
+            <>
+              <div style={{ width:40, height:40, background:"linear-gradient(135deg,#6366f1,#06b6d4)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:8, flexShrink:0 }}>
+                <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24">
+                  <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z"/>
+                </svg>
+              </div>
+              <div style={{ width:28, height:1, background:tk.border, margin:"4px 0" }} />
+            </>
+          )}
 
           {/* Global chat */}
           <button className={`fc-nav-btn${panel==="global"?" active":""}`} onClick={() => {
             setPanel("global");
             setSelectedUser(null);
             setCurrentConversation({ id: "global_room", name: "Global Chat" });
+            if (isMobile) setMobileView("list");
           }} title="">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
             </svg>
-            <span className="fc-tooltip">Global</span>
+            {!isMobile && <span className="fc-tooltip">Global</span>}
           </button>
 
           {/* Friends */}
-          <button className={`fc-nav-btn${panel==="friends"?" active":""}`} onClick={()=>setPanel("friends")} title="">
+          <button className={`fc-nav-btn${panel==="friends"?" active":""}`} onClick={()=>{
+            setPanel("friends");
+            if (isMobile) setMobileView("list");
+          }} title="">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
             </svg>
-            <span className="fc-tooltip">Friends</span>
+            {!isMobile && <span className="fc-tooltip">Friends</span>}
           </button>
 
           {/* spacer */}
-          <div style={{ flex:1 }} />
+          {!isMobile && <div style={{ flex:1 }} />}
 
           {/* Theme toggle */}
-          <button className="fc-theme-btn" onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} title={isDark?"Light mode":"Dark mode"}>
+          <button className="fc-theme-btn" onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} title={isDark?"Light mode":"Dark mode"} style={{ margin: isMobile ? 0 : "auto 0 0" }}>
             {isDark
               ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
               : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -688,12 +736,12 @@ export default function ChatLayout() {
           </button>
 
           {/* Profile */}
-          <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile"); setEditMode(false);}} style={{ marginBottom:4, marginTop:6 }} title="">
+          <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile"); setEditMode(false); if (isMobile) setMobileView("list");}} style={{ marginBottom: isMobile ? 0 : 4, marginTop: isMobile ? 0 : 6 }} title="">
             <div style={{ width:34, height:34, borderRadius:10, background:profile.avatarUrl ? `url(http://localhost:3000${profile.avatarUrl}) center/cover` : avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
               {!profile.avatarUrl && (profile.firstName[0]||"")+(profile.lastName[0]||"")}
               <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
             </div>
-            <span className="fc-tooltip">Profile</span>
+            {!isMobile && <span className="fc-tooltip">Profile</span>}
           </button>
         </div>
 
@@ -759,6 +807,7 @@ export default function ChatLayout() {
                         onClick={() => {
                            setSelectedUser(u);
                            setPanel("profile");
+                           if (isMobile) setMobileView("list"); // Stay in list to see profile in left panel
                         }}
                       >
                         <div style={{ position:"relative", flexShrink:0 }}>
@@ -812,6 +861,7 @@ export default function ChatLayout() {
                               id: conv.id, 
                               name: `${otherUser.firstName} ${otherUser.lastName}` 
                             });
+                            if (isMobile) setMobileView("chat");
                           }}
                         >
                           <div style={{ position:"relative", flexShrink:0 }}>
@@ -979,15 +1029,25 @@ export default function ChatLayout() {
         <div style={s.chatArea}>
 
           {/* Chat header */}
-          <div style={{ padding:"0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ padding: isMobile ? "0 12px" : "0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap: isMobile ? 8 : 12 }}>
+              {isMobile && (
+                <button 
+                  onClick={() => setMobileView("list")}
+                  style={{ background: "none", border: "none", color: tk.text, padding: "8px 4px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                >
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+              )}
               <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#6366f1,#06b6d4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                 <svg width="17" height="17" fill="#fff" viewBox="0 0 24 24">
                   <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z"/>
                 </svg>
               </div>
-              <div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em" }}>{chatTitle}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontSize: isMobile ? 16 : 18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chatTitle}</div>
                 {currentConversation?.id === "global_room" ? (
                   <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
                 ) : (
@@ -997,23 +1057,25 @@ export default function ChatLayout() {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {/* header theme badge */}
-              <div style={{ 
-                fontSize: 18, 
-                fontWeight: 800, 
-                color: tk.accent, 
-                background: tk.accentSoft, 
-                padding: "6px 16px", 
-                borderRadius: 12, 
-                fontFamily: "'Inter', sans-serif", 
-                letterSpacing: "-0.02em" 
-              }}>
-                FluxChat
-              </div>
+              {!isMobile && (
+                <div style={{ 
+                  fontSize: 18, 
+                  fontWeight: 800, 
+                  color: tk.accent, 
+                  background: tk.accentSoft, 
+                  padding: "6px 16px", 
+                  borderRadius: 12, 
+                  fontFamily: "'Inter', sans-serif", 
+                  letterSpacing: "-0.02em" 
+                }}>
+                  FluxChat
+                </div>
+              )}
             </div>
           </div>
 
           {/* Messages */}
-          <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"16px 24px", display:"flex", flexDirection:"column", gap:2 }}>
+          <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding: isMobile ? "12px" : "16px 24px", display:"flex", flexDirection:"column", gap:2 }}>
             {grouped.map(group => (
               <div key={group.label}>
                 {/* Day separator */}
@@ -1043,7 +1105,7 @@ export default function ChatLayout() {
                         </div>
                       )}
 
-                      <div style={{ maxWidth:"62%", display:"flex", flexDirection:"column", alignItems: isMe ? "flex-end" : "flex-start" }}>
+                      <div style={{ maxWidth: isMobile ? "85%" : "62%", display:"flex", flexDirection:"column", alignItems: isMe ? "flex-end" : "flex-start" }}>
                         {/* Sender name */}
                         {!isMe && showAvatar && (
                           <div style={{ fontSize:11, fontWeight:700, color:avatarColors(sender.firstName), marginBottom:4, paddingLeft:2 }}>
@@ -1140,7 +1202,7 @@ export default function ChatLayout() {
           </div>
 
           {/* Input bar */}
-          <div style={{ padding:"12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
+          <div style={{ padding: isMobile ? "8px 12px 12px" : "12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
             {imagePreview && (
               <div style={{ position: "absolute", bottom: "80px", left: "20px", background: tk.surface, padding: "8px", borderRadius: "12px", border: `1px solid ${tk.border}`, display: "flex", alignItems: "flex-start", gap: "8px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
                 <img src={imagePreview} alt="Preview" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }} />
@@ -1167,11 +1229,11 @@ export default function ChatLayout() {
               style={{ 
                 display:"flex", 
                 alignItems:"center", 
-                gap:10, 
+                gap: isMobile ? 6 : 10, 
                 background:tk.input, 
                 border:`1px solid ${tk.inputBorder}`, 
                 borderRadius:16, 
-                padding:"6px 8px 6px 16px", 
+                padding: isMobile ? "4px 6px 4px 12px" : "6px 8px 6px 16px", 
                 transition:"border 0.18s, box-shadow 0.18s",
                 cursor: "text" 
               }}
@@ -1193,8 +1255,8 @@ export default function ChatLayout() {
 
               <input
                 ref={inputRef}
-                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:tk.text, fontFamily:"'DM Sans',sans-serif", caretColor:tk.accent }}
-                placeholder="Message Global Chat…"
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize: isMobile ? 13 : 14, color:tk.text, fontFamily:"'DM Sans',sans-serif", caretColor:tk.accent }}
+                placeholder={isMobile ? "Message..." : `Message ${currentConversation?.name || "Global Chat"}…`}
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
@@ -1211,7 +1273,7 @@ export default function ChatLayout() {
               <button 
                 onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 disabled={isUploading}
-                style={{ background: "none", border: "none", cursor: "pointer", color: tk.textDim, display: "flex", alignItems: "center", transition: "color 0.15s", opacity: isUploading ? 0.5 : 1 }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: tk.textDim, display: "flex", alignItems: "center", transition: "color 0.15s", opacity: isUploading ? 0.5 : 1, flexShrink: 0 }}
                 onMouseEnter={e => !isUploading && (e.currentTarget.style.color = tk.accent)}
                 onMouseLeave={e => !isUploading && (e.currentTarget.style.color = tk.textDim)}>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1219,7 +1281,7 @@ export default function ChatLayout() {
                 </svg>
               </button>
 
-              <button className="fc-send-btn" onClick={sendMessage} disabled={isUploading || (!draft.trim() && !selectedImage)} style={{ opacity: (draft.trim() || selectedImage) ? 1 : 0.45 }}>
+              <button className="fc-send-btn" onClick={sendMessage} disabled={isUploading || (!draft.trim() && !selectedImage)} style={{ opacity: (draft.trim() || selectedImage) ? 1 : 0.45, width: isMobile ? 32 : 36, height: isMobile ? 32 : 36 }}>
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
