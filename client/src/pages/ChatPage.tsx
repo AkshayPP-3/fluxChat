@@ -6,7 +6,7 @@ import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Theme = "dark" | "light";
-type Panel = "global" | "friends" | "profile";
+type Panel = "global" | "friends" | "profile" | "users";
 
 interface User {
   id: string;
@@ -499,7 +499,7 @@ export default function ChatLayout() {
   }
 
   // ── Left sidebar heading ──
-  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : "Profile";
+  const sidebarTitle = panel === "global" ? "Global Chat" : panel === "friends" ? "Friends" : panel === "users" ? "Users" : "Profile";
 
   const filteredUsers = registeredUsers.filter(u => 
     u.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -551,7 +551,7 @@ export default function ChatLayout() {
       width: isMobile ? "100%" : 320, 
       display: isMobile 
         ? (mobileView === "list" ? "flex" : "none") 
-        : (panel === "global" && currentConversation?.id === "global_room" ? "none" : "flex"), 
+        : (panel === "global" ? "none" : "flex"), 
       flexDirection: "column" as const,
       background: tk.surface, 
       borderRight: `1px solid ${tk.border}`,
@@ -614,6 +614,10 @@ export default function ChatLayout() {
           height: ${isMobile ? "3px" : "22px"}; 
           border-radius: ${isMobile ? "0 0 3px 3px" : "0 3px 3px 0"};
           background: ${tk.accent};
+        }
+
+        .fc-left-panel-bg {
+          background: ${tk.surface} !important;
         }
 
         .fc-user-row {
@@ -700,6 +704,18 @@ export default function ChatLayout() {
               <div style={{ width:28, height:1, background:tk.border, margin:"4px 0" }} />
             </>
           )}
+
+          {/* Users List Button */}
+          <button className={`fc-nav-btn${panel==="users"?" active":""}`} onClick={() => {
+            setPanel("users");
+            if (isMobile) setMobileView("list");
+          }} title="">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            {!isMobile && <span className="fc-tooltip">Users</span>}
+          </button>
 
           {/* Global chat */}
           <button className={`fc-nav-btn${panel==="global"?" active":""}`} onClick={() => {
@@ -792,8 +808,8 @@ export default function ChatLayout() {
           )}
 
           {/* User list */}
-          <div className="fc-scroll" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
-            {panel === "global" && (
+          <div className="fc-scroll fc-left-panel-bg" style={{ flex:1, overflowY:"auto", padding:"8px 10px" }}>
+            {(panel === "global" || panel === "users") && (
               <>
                 {filteredUsers.length === 0 ? (
                   <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted, fontSize: "13px" }}>
@@ -835,7 +851,7 @@ export default function ChatLayout() {
             )}
 
             {panel === "friends" && (
-               <div className="fc-scroll" style={{ flex:1, overflowY:"auto" }}>
+               <div className="fc-scroll fc-left-panel-bg" style={{ flex:1, overflowY:"auto" }}>
                  {userConversations.length === 0 ? (
                     <div style={{ padding: "20px", textAlign: "center", color: tk.textMuted }}>
                       <div style={{ fontSize: "14px", fontWeight: 600 }}>No friends yet</div>
