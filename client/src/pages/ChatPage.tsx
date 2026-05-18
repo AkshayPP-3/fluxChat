@@ -549,7 +549,9 @@ export default function ChatLayout() {
     // Left panel
     leftPanel: {
       width: isMobile ? "100%" : 320, 
-      display: (isMobile && mobileView === "chat") ? "none" : "flex", 
+      display: isMobile 
+        ? (mobileView === "list" ? "flex" : "none") 
+        : (panel === "global" && currentConversation?.id === "global_room" ? "none" : "flex"), 
       flexDirection: "column" as const,
       background: tk.surface, 
       borderRight: `1px solid ${tk.border}`,
@@ -704,7 +706,7 @@ export default function ChatLayout() {
             setPanel("global");
             setSelectedUser(null);
             setCurrentConversation({ id: "global_room", name: "Global Chat" });
-            if (isMobile) setMobileView("list");
+            if (isMobile) setMobileView("chat");
           }} title="">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
