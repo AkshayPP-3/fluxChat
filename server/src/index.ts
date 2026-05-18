@@ -44,10 +44,6 @@ app.use("/api/conversations",conversationRoutes);
 app.use("/api/messages",messageRoutes);
 app.use("/api/user",userRoutes)
 
-app.get("/test",(_,res)=>{
-    res.send("Test message")
-})
-
 const startServer = async () => {
     await initSocket(server);
 
