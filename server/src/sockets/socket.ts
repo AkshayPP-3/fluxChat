@@ -1,13 +1,28 @@
 import {Server} from "socket.io";
 import { prisma } from "../lib/prisma";
+import { createClient } from "redis";
+import { createAdapter } from "@socket.io/redis-adapter";
 
-export const initSocket = (server: any)=>{
+export const initSocket = async (server: any)=>{
     const io = new Server(server,{
         cors:{
             origin: "*",
             methods: ["GET","POST"]
         }
     })
+
+    // --- Redis Adapter Setup ---
+    const pubClient = createClient({ url: "redis://localhost:6379" });
+    const subClient = pubClient.duplicate();
+
+    try {
+        await Promise.all([pubClient.connect(), subClient.connect()]);
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log("Redis adapter connected for Socket.io");
+    } catch (err) {
+        console.error("Redis connection error:", err);
+    }
+    // ----------------------------
 
     const connectedUsers = new Map<string, string>(); // socketId -> userId
 

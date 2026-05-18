@@ -48,8 +48,12 @@ app.get("/test",(_,res)=>{
     res.send("Test message")
 })
 
-initSocket(server);
+const startServer = async () => {
+    await initSocket(server);
 
-server.listen(PORT,()=>{
-    console.log(`server running on port ${PORT}`)
-})
+    server.listen(PORT,()=>{
+        console.log(`server running on port ${PORT}`)
+    })
+}
+
+startServer();
