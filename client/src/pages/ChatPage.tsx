@@ -1065,8 +1065,8 @@ export default function ChatLayout() {
         <div style={s.chatArea}>
 
           {/* Chat header */}
-          <div style={{ padding: isMobile ? "0 12px" : "0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"center", gap: isMobile ? 8 : 12 }}>
+          <div style={{ padding: isMobile ? "0 10px" : "0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, zIndex: 10 }}>
+            <div style={{ display:"flex", alignItems:"center", gap: isMobile ? 6 : 12, minWidth: 0 }}>
               {isMobile && currentConversation && (
                 <button 
                   onClick={() => {
@@ -1076,24 +1076,24 @@ export default function ChatLayout() {
                         setPanel("users");
                     }
                   }}
-                  style={{ background: "none", border: "none", color: tk.text, padding: "8px 4px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                  style={{ background: "none", border: "none", color: tk.text, padding: "8px 2px", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
                 >
                   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path d="M15 18l-6-6 6-6" />
                   </svg>
                 </button>
               )}
-              <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#6366f1,#06b6d4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <svg width="17" height="17" fill="#fff" viewBox="0 0 24 24">
+              <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#6366f1,#06b6d4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink: 0 }}>
+                <svg width="15" height="15" fill="#fff" viewBox="0 0 24 24">
                   <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z"/>
                 </svg>
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize: isMobile ? 16 : 18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chatTitle}</div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontSize: isMobile ? 15 : 18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chatTitle}</div>
                 {currentConversation?.id === "global_room" ? (
-                  <div style={{ fontSize:11, color:tk.textMuted }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
+                  <div style={{ fontSize:10, color:tk.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
                 ) : (
-                  <div style={{ fontSize:11, color:tk.textMuted }}>Private Conversation</div>
+                  <div style={{ fontSize:10, color:tk.textMuted }}>Private Conversation</div>
                 )}
               </div>
             </div>
@@ -1244,7 +1244,14 @@ export default function ChatLayout() {
           </div>
 
           {/* Input bar */}
-          <div style={{ padding: isMobile ? "8px 12px 12px" : "12px 20px 16px", borderTop:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0, position: "relative" }}>
+          <div style={{ 
+            padding: isMobile ? "8px 12px calc(8px + env(safe-area-inset-bottom, 0px))" : "12px 20px 16px", 
+            borderTop:`1px solid ${tk.border}`, 
+            background:tk.surface, 
+            flexShrink:0, 
+            position: "relative",
+            zIndex: 10
+          }}>
             {imagePreview && (
               <div style={{ position: "absolute", bottom: "80px", left: "20px", background: tk.surface, padding: "8px", borderRadius: "12px", border: `1px solid ${tk.border}`, display: "flex", alignItems: "flex-start", gap: "8px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
                 <img src={imagePreview} alt="Preview" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }} />
