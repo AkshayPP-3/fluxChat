@@ -291,8 +291,18 @@ export default function ChatLayout() {
               const filtered = prev.filter(m => {
                 const isTemp = m.id.startsWith("temp-");
                 const isSameSender = m.senderId === data.senderId;
-                const isSameContent = (m.text === (data.message || "")) && (m.imageUrl === (data.imageUrl || ""));
-                return !(isTemp && isSameSender && isSameContent);
+                
+                // Allow fuzzy matching for images because the optimistic one uses a blob URL
+                // while the received one uses a Cloudinary URL
+                const hasImageMatch = m.imageUrl && data.imageUrl;
+                const hasTextMatch = (m.text === (data.message || ""));
+                
+                // If both have images, we assume it's the same message if it's the same sender and same text
+                if (isTemp && isSameSender) {
+                   if (hasImageMatch) return false; // Match found (remove temp)
+                   if (hasTextMatch && !m.imageUrl && !data.imageUrl) return false; // Text-only duplicate
+                }
+                return true;
               });
               
               return [...filtered, {
