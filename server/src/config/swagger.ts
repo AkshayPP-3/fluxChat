@@ -10,7 +10,7 @@ const option= {
         },
         servers: [
             {
-                url: "http://localhost:3000",
+                url: process.env.BASE_URL || "http://localhost:3000",
             },
         ],
         components: {

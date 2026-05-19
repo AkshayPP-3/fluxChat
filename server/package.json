@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "prisma generate",
+    "build": "prisma generate && tsc",
     "start": "node dist/index.js",
     "localdb": "docker exec -it fluxchat_local_db psql -U fluxchat_admin -d fluxchat"
   },
