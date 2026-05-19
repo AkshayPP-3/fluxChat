@@ -38,7 +38,7 @@ export const uploadImage = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
         }
-        const imageUrl = `/uploads/${req.file.filename}`;
+        const imageUrl = req.file.path;
         return res.status(200).json({ imageUrl });
     } catch (error) {
         console.log(error);
