@@ -2,9 +2,9 @@ import express from "express";
 import { getOrCreateConversation,
         getUserConversations,
         getGlobalChat 
-} from "../controllers/conversationController";
+} from "../controllers/conversationController.js";
 
-import { protect } from "../middleware/authMiddleware";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

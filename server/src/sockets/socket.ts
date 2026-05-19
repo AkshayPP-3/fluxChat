@@ -1,5 +1,5 @@
 import {Server} from "socket.io";
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 import { createClient, ReconnectStrategyError } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 
