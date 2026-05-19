@@ -360,16 +360,35 @@ export default function ChatLayout() {
 
   async function sendMessage() {
     const t = draft.trim();
-    if ((!t && !selectedImage) || !socketRef.current || !user || !currentConversation) return;
+    if ((!t && !selectedImage) || !user || !currentConversation) return;
 
     let imageUrl = "";
 
+    // 1. CLEAR DRAFT & ADD OPTIMISTIC MESSAGE
+    // Use the local preview immediately so the user sees something happening
+    const localPreview = imagePreview;
+    const tempId = `temp-${Date.now()}`;
+    
+    setMessages(prev => [...prev, {
+        id: tempId,
+        senderId: user.id,
+        text: t,
+        imageUrl: localPreview || "",
+        timestamp: new Date()
+    }]);
+
+    setDraft("");
+    setSelectedImage(null);
+    setImagePreview(null);
+
+    // 2. UPLOAD IMAGE IF ANY
     if (selectedImage) {
       setIsUploading(true);
       const formData = new FormData();
       formData.append("image", selectedImage);
 
       try {
+        console.log("ChatPage - Uploading image...");
         const res = await fetch(`${API_URL}/api/messages/upload`, {
           method: "POST",
           headers: {
@@ -377,17 +396,21 @@ export default function ChatLayout() {
           },
           body: formData
         });
+        
+        if (!res.ok) throw new Error("Upload failed");
+        
         const data = await res.json();
         imageUrl = data.imageUrl;
+        console.log("ChatPage - Image uploaded successfully:", imageUrl);
       } catch (err) {
         console.error("Error uploading image:", err);
         setIsUploading(false);
-        return;
+        return; 
       }
       setIsUploading(false);
     }
 
-    // Final message object
+    // 3. SEND DATA TO BACKEND
     const msgData = {
       conversationId: currentConversation.id,
       message: t,
@@ -399,8 +422,7 @@ export default function ChatLayout() {
     if (socketRef.current?.connected) {
         socketRef.current.emit("send_message", msgData);
     } else {
-        console.error("Socket not connected, trying to send via fallback REST API");
-        // Fallback to REST API if socket is down
+        console.warn("Socket not connected, trying REST fallback");
         fetch(`${API_URL}/api/messages`, {
             method: "POST",
             headers: { 
@@ -415,9 +437,6 @@ export default function ChatLayout() {
         }).catch(err => console.error("REST fallback failed:", err));
     }
 
-    setDraft("");
-    setSelectedImage(null);
-    setImagePreview(null);
     inputRef.current?.focus();
   }
 
