@@ -103,11 +103,11 @@ export const initSocket = async (server: any)=>{
                 }
 
                 // 2. Save message to DB
-                console.log("Socket - Saving to DB with imageUrl:", data.imageUrl);
+                console.log("Socket - Saving to DB. ConversationId:", conversationId, "Data:", JSON.stringify(data));
                 const savedMsg = await prisma.message.create({
                     data: {
                         content: data.message || null,
-                        imageUrl: data.imageUrl || null,
+                        imageUrl: String(data.imageUrl || "").trim() || null,
                         senderId: data.senderId,
                         conversationId: conversationId
                     }

@@ -18,7 +18,7 @@ export const sendMessage = async (req:Request,res:Response)=>{
         const message = await prisma.message.create({
             data: {
                 content: content || null,
-                imageUrl: req.body.imageUrl || null,
+                imageUrl: String(req.body.imageUrl || "").trim() || null,
                 senderId: userId,
                 conversationId
             },
