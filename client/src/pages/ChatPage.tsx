@@ -757,7 +757,7 @@ export default function ChatLayout() {
           <button className={`fc-nav-btn${panel==="profile" && !selectedUser ?" active":""}`} onClick={()=>{setSelectedUser(null); setPanel("profile"); setEditMode(false); if (isMobile) setMobileView("list");}} style={{ marginBottom: isMobile ? 0 : 4, marginTop: isMobile ? 0 : 6 }} title="">
             <div style={{ width:34, height:34, borderRadius:10, background:profile.avatarUrl ? `url(${profile.avatarUrl}) center/cover` : avatarColors(profile.firstName), display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff", letterSpacing:"0.02em", position:"relative" }}>
               {!profile.avatarUrl && (profile.firstName[0]||"")+(profile.lastName[0]||"")}
-              <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background:tk.online, border:`2px solid ${tk.surface}` }} />
+              <div style={{ position:"absolute", bottom:-1, right:-1, width:9, height:9, borderRadius:"50%", background: onlineUsers.includes(user?.id || "") ? tk.online : tk.offline, border:`2px solid ${tk.surface}` }} />
             </div>
             {!isMobile && <span className="fc-tooltip">Profile</span>}
           </button>
