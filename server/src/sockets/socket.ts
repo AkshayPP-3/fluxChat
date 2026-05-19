@@ -23,7 +23,11 @@ export const initSocket = async (server: any)=>{
             },
             methods: ["GET","POST"],
             credentials: true
-        }
+        },
+        transports: ['websocket', 'polling'],
+        allowEIO3: true, // Compatibility
+        pingTimeout: 60000,
+        pingInterval: 25000
     })
 
     // Redis Adapter Setup
@@ -32,7 +36,11 @@ export const initSocket = async (server: any)=>{
         const pubClient = createClient({ 
             url: process.env.REDIS_URL,
             socket: {
-                reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
+                connectTimeout: 5000, // 5 seconds max wait
+                reconnectStrategy: (retries) => {
+                    if (retries > 3) return new Error("Redis connection failed");
+                    return Math.min(retries * 100, 1000);
+                }
             }
         });
         

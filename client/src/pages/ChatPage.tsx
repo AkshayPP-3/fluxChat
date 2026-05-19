@@ -125,6 +125,12 @@ export default function ChatLayout() {
   const [panel, setPanel]       = useState<Panel>("users");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentConversation, setCurrentConversation] = useState<{ id: string; name: string } | null>(null);
+  const currentConvoRef = useRef(currentConversation);
+
+  useEffect(() => {
+    currentConvoRef.current = currentConversation;
+  }, [currentConversation]);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [userConversations, setUserConversations] = useState<any[]>([]);
@@ -248,8 +254,9 @@ export default function ChatLayout() {
   useEffect(() => {
     if (token && user) {
       const socket = io(API_URL, {
-        reconnectionAttempts: 5,
+        reconnectionAttempts: 10,
         reconnectionDelay: 1000,
+        transports: ['websocket'], // Force websocket for speed
       });
       socketRef.current = socket;
 
@@ -257,7 +264,7 @@ export default function ChatLayout() {
         console.log("Socket connected:", socket.id);
         socket.emit("user_online", user.id);
         // Re-join current conversation on connect/reconnect
-        const convoId = currentConversation?.id || "global_room";
+        const convoId = currentConvoRef.current?.id || "global_room";
         socket.emit("join_conversation", convoId);
       });
 
@@ -280,7 +287,13 @@ export default function ChatLayout() {
               const exists = prev.some(m => m.id === data.id);
               if (exists) return prev;
               
-              const filtered = prev.filter(m => !(m.id.startsWith("temp-") && m.text === data.message && m.senderId === data.senderId));
+              // Remove the optimistic match: same sender, same content (text or image)
+              const filtered = prev.filter(m => {
+                const isTemp = m.id.startsWith("temp-");
+                const isSameSender = m.senderId === data.senderId;
+                const isSameContent = (m.text === (data.message || "")) && (m.imageUrl === (data.imageUrl || ""));
+                return !(isTemp && isSameSender && isSameContent);
+              });
               
               return [...filtered, {
                 id: data.id || `m${Date.now()}_${Math.random()}`,
@@ -380,6 +393,16 @@ export default function ChatLayout() {
       imageUrl: imageUrl,
       senderId: user.id
     };
+
+    // Optimistic Update
+    const tempId = `temp-${Date.now()}`;
+    setMessages(prev => [...prev, {
+        id: tempId,
+        senderId: user.id,
+        text: t,
+        imageUrl: imageUrl,
+        timestamp: new Date()
+    }]);
 
     console.log("Socket - Sending message:", msgData);
     if (socketRef.current) {
