@@ -4,12 +4,25 @@ import { createClient, ReconnectStrategyError } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 
 export const initSocket = async (server: any)=>{
+    const allowedOrigins = [
+        process.env.CLIENT_URL,
+        "https://flux-chat-wine.vercel.app",
+        "http://localhost:5173"
+    ].filter(Boolean) as string[];
+
     //creating new socket server
     const io = new Server(server,{
         //for connecting to front end
         cors:{
-            origin: process.env.CLIENT_URL || "*",
-            methods: ["GET","POST"]
+            origin: (origin, callback) => {
+                if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("Not allowed by CORS"));
+                }
+            },
+            methods: ["GET","POST"],
+            credentials: true
         }
     })
 
@@ -46,8 +59,11 @@ export const initSocket = async (server: any)=>{
         console.log("user connected:",socket.id);
 
         socket.on("user_online", (userId) => {
+            console.log(`User ${userId} is online on socket ${socket.id}`);
             connectedUsers.set(socket.id, userId);
-            io.emit("update_online_users", Array.from(new Set(connectedUsers.values())));
+            const onlineIds = Array.from(new Set(connectedUsers.values()));
+            console.log("Broadcasting online users:", onlineIds);
+            io.emit("update_online_users", onlineIds);
         });
 
         socket.on("join_conversation",(conversationId)=>{

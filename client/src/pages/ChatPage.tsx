@@ -256,9 +256,13 @@ export default function ChatLayout() {
       socket.on("connect", () => {
         console.log("Socket connected:", socket.id);
         socket.emit("user_online", user.id);
+        // Re-join current conversation on connect/reconnect
+        const convoId = currentConversation?.id || "global_room";
+        socket.emit("join_conversation", convoId);
       });
 
       socket.on("update_online_users", (userIds: string[]) => {
+        console.log("Socket - Online users updated:", userIds);
         setOnlineUsers(userIds);
       });
 
@@ -378,7 +382,11 @@ export default function ChatLayout() {
     };
 
     console.log("Socket - Sending message:", msgData);
-    socketRef.current.emit("send_message", msgData);
+    if (socketRef.current) {
+        socketRef.current.emit("send_message", msgData);
+    } else {
+        console.error("Socket not connected, cannot send message");
+    }
 
     setDraft("");
     setSelectedImage(null);
