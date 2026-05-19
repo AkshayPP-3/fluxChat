@@ -23,7 +23,15 @@ export const sendMessage = async (req:Request,res:Response)=>{
                 conversationId
             },
             include: {
-                sender: true
+                sender: {
+                    select: {
+                        id: true,
+                        firstname: true,
+                        lastname: true,
+                        username: true,
+                        avatarUrl: true
+                    }
+                }
             }
         })
         return res.status(201).json(message);

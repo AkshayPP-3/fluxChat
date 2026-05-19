@@ -103,6 +103,7 @@ export const initSocket = async (server: any)=>{
                 }
 
                 // 2. Save message to DB
+                console.log("Socket - Saving to DB with imageUrl:", data.imageUrl);
                 const savedMsg = await prisma.message.create({
                     data: {
                         content: data.message || null,
@@ -113,28 +114,22 @@ export const initSocket = async (server: any)=>{
                 });
 
                 // 3. Broadcast
+                const broadcastData = {
+                    id: savedMsg.id,
+                    conversationId: data.conversationId, // Use original ID (e.g., "global_room") for client matching
+                    message: savedMsg.content,
+                    imageUrl: savedMsg.imageUrl,
+                    senderId: savedMsg.senderId,
+                    createdAt: savedMsg.createdAt,
+                };
+
                 if (data.conversationId === "global_room") {
-                    io.emit("receive_message", {
-                        id: savedMsg.id,
-                        conversationId: "global_room",
-                        message: savedMsg.content,
-                        imageUrl: savedMsg.imageUrl,
-                        senderId: savedMsg.senderId,
-                        createdAt: savedMsg.createdAt,
-                    });
+                    io.emit("receive_message", broadcastData);
                 } else {
-                    // Private message - only to participants
-                    io.to(data.conversationId).emit("receive_message", {
-                        id: savedMsg.id,
-                        conversationId: data.conversationId,
-                        message: savedMsg.content,
-                        imageUrl: savedMsg.imageUrl,
-                        senderId: savedMsg.senderId,
-                        createdAt: savedMsg.createdAt,
-                    });
+                    io.to(data.conversationId).emit("receive_message", broadcastData);
                 }
 
-                console.log("Message saved and broadcasted:", savedMsg.id);
+                console.log("Message saved and broadcasted:", savedMsg.id, "Image:", !!savedMsg.imageUrl);
             } catch (err) {
                 console.error("Socket Error - Failed to save/broadcast message:", err);
             }
