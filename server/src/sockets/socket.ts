@@ -1,23 +1,30 @@
 import {Server} from "socket.io";
 import { prisma } from "../lib/prisma";
-import { createClient } from "redis";
+import { createClient, ReconnectStrategyError } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 
 export const initSocket = async (server: any)=>{
+    //creating new socket server
     const io = new Server(server,{
+        //for connecting to front end
         cors:{
             origin: "*",
             methods: ["GET","POST"]
         }
     })
 
-    // --- Redis Adapter Setup ---
+    // Redis Adapter Setup
+
+    //publisher
     const pubClient = createClient({ 
         url: "redis://127.0.0.1:6379",
+        //use this if redis connection is lost
         socket: {
             reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
         }
     });
+    
+    //subscriber
     const subClient = pubClient.duplicate();
 
     try {
@@ -27,7 +34,6 @@ export const initSocket = async (server: any)=>{
     } catch (err) {
         console.error("Redis connection error:", err);
     }
-    // ----------------------------
 
     const connectedUsers = new Map<string, string>(); // socketId -> userId
 
