@@ -8,7 +8,7 @@ export const initSocket = async (server: any)=>{
     const io = new Server(server,{
         //for connecting to front end
         cors:{
-            origin: "*",
+            origin: process.env.CLIENT_URL || "*",
             methods: ["GET","POST"]
         }
     })
@@ -17,7 +17,7 @@ export const initSocket = async (server: any)=>{
 
     //publisher
     const pubClient = createClient({ 
-        url: "redis://127.0.0.1:6379",
+        url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
         //use this if redis connection is lost
         socket: {
             reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
