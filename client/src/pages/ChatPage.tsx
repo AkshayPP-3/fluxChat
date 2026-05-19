@@ -530,8 +530,8 @@ export default function ChatLayout() {
   // ── Styles ──
   const s = {
     root: {
-      display: "flex", height: "100vh", width: "100%", overflow: "hidden",
-      background: tk.bg, fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      display: "flex", height: "100dvh", width: "100%", overflow: "hidden",
+      background: tk.surface, fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
       color: tk.text, transition: "background 0.25s, color 0.25s",
     } as React.CSSProperties,
 
@@ -558,6 +558,7 @@ export default function ChatLayout() {
     // Left panel
     leftPanel: {
       width: isMobile ? "100%" : 320, 
+      height: "100%",
       display: isMobile 
         ? (mobileView === "list" ? "flex" : "none") 
         : (panel === "global" ? "none" : "flex"), 
@@ -572,6 +573,8 @@ export default function ChatLayout() {
     // Chat area
     chatArea: {
       flex: 1, 
+      height: "100%",
+      maxHeight: "100%",
       display: (isMobile && mobileView === "list") ? "none" : "flex", 
       flexDirection: "column" as const,
       background: tk.bg, 
@@ -586,7 +589,14 @@ export default function ChatLayout() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&family=Inter:wght@700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+        html, body, #root { 
+          height: 100dvh; 
+          width: 100%; 
+          overflow: hidden; 
+          position: fixed;
+          top: 0;
+          left: 0;
+        }
 
         .fc-scroll::-webkit-scrollbar { width: 4px; }
         .fc-scroll::-webkit-scrollbar-track { background: transparent; }
