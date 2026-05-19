@@ -29,8 +29,20 @@ const PORT = process.env.PORT || 3000
 const server = http.createServer(app);
 
 app.use(express.json());
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "https://flux-chat-wine.vercel.app",
+    "http://localhost:5173"
+].filter(Boolean) as string[];
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
 }));
