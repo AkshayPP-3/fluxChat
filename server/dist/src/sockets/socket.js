@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { prisma } from "../lib/prisma";
-import { createClient, ReconnectStrategyError } from "redis";
+import { prisma } from "../lib/prisma.js";
+import { createClient } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 export const initSocket = async (server) => {
     //creating new socket server
@@ -117,4 +117,3 @@ export const initSocket = async (server) => {
     });
     return io;
 };
-//# sourceMappingURL=socket.js.map

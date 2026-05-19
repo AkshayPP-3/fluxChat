@@ -102,4 +102,3 @@ router.get("/:id", protect, getUserById);
  */
 router.get("/search", protect, searchUsers);
 export default router;
-//# sourceMappingURL=userRoutes.js.map

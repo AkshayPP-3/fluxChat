@@ -16,4 +16,3 @@ export const protect = (req, res, next) => {
         });
     }
 };
-//# sourceMappingURL=authMiddleware.js.map

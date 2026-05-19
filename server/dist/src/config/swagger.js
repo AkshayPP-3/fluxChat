@@ -111,4 +111,3 @@ const option = {
     apis: ["./src/routes/*.ts"],
 };
 export const specs = swaggerJsdoc(option);
-//# sourceMappingURL=swagger.js.map

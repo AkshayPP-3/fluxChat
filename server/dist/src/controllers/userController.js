@@ -139,4 +139,3 @@ export const updateProfile = async (req, res) => {
         return res.status(500).json({ message: "internal server error" });
     }
 };
-//# sourceMappingURL=userController.js.map

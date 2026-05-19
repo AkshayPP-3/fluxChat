@@ -1,8 +1,8 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { sendMessage, getMessages, uploadImage } from "../controllers/messageController";
-import { protect } from "../middleware/authMiddleware";
+import { sendMessage, getMessages, uploadImage } from "../controllers/messageController.js";
+import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -88,4 +88,3 @@ router.post("/upload", protect, upload.single("image"), uploadImage);
  */
 router.get("/:conversationId", protect, getMessages);
 export default router;
-//# sourceMappingURL=messageRoutes.js.map

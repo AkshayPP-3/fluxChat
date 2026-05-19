@@ -4,4 +4,3 @@ export const generateToken = (userId) => {
         expiresIn: "7d",
     });
 };
-//# sourceMappingURL=generateToken.js.map

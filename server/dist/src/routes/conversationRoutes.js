@@ -1,6 +1,6 @@
 import express from "express";
-import { getOrCreateConversation, getUserConversations, getGlobalChat } from "../controllers/conversationController";
-import { protect } from "../middleware/authMiddleware";
+import { getOrCreateConversation, getUserConversations, getGlobalChat } from "../controllers/conversationController.js";
+import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 /**
  * @swagger
@@ -90,4 +90,3 @@ router.get("/", protect, getUserConversations);
  */
 router.get("/global", protect, getGlobalChat);
 export default router;
-//# sourceMappingURL=conversationRoutes.js.map

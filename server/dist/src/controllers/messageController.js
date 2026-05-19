@@ -74,4 +74,3 @@ export const getMessages = async (req, res) => {
         return res.status(500).json({ message: "internal server error" });
     }
 };
-//# sourceMappingURL=messageController.js.map

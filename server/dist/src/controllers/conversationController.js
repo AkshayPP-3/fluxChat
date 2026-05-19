@@ -95,4 +95,3 @@ export const getGlobalChat = async (_, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
-//# sourceMappingURL=conversationController.js.map
