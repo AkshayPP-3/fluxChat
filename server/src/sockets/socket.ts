@@ -39,12 +39,6 @@ export const initSocket = async (server: any)=>{
     if (ioAdapter) {
         io.adapter(ioAdapter);
     }
-        await Promise.all([pubClient.connect(), subClient.connect()]);
-        io.adapter(createAdapter(pubClient, subClient));
-        console.log("Redis adapter connected for Socket.io");
-    } catch (err) {
-        console.error("Redis connection error:", err);
-    }
 
     const connectedUsers = new Map<string, string>(); // socketId -> userId
 
