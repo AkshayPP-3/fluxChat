@@ -14,20 +14,31 @@ export const initSocket = async (server: any)=>{
     })
 
     // Redis Adapter Setup
+    let ioAdapter;
+    if (process.env.REDIS_URL) {
+        const pubClient = createClient({ 
+            url: process.env.REDIS_URL,
+            socket: {
+                reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
+            }
+        });
+        
+        const subClient = pubClient.duplicate();
 
-    //publisher
-    const pubClient = createClient({ 
-        url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
-        //use this if redis connection is lost
-        socket: {
-            reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
+        try {
+            await Promise.all([pubClient.connect(), subClient.connect()]);
+            ioAdapter = createAdapter(pubClient, subClient);
+            console.log("Successfully connected to Redis for Socket.io adapter");
+        } catch (error) {
+            console.error("Redis connection error, falling back to in-memory adapter:", error);
         }
-    });
-    
-    //subscriber
-    const subClient = pubClient.duplicate();
+    } else {
+        console.log("REDIS_URL not provided, using default in-memory adapter");
+    }
 
-    try {
+    if (ioAdapter) {
+        io.adapter(ioAdapter);
+    }
         await Promise.all([pubClient.connect(), subClient.connect()]);
         io.adapter(createAdapter(pubClient, subClient));
         console.log("Redis adapter connected for Socket.io");
