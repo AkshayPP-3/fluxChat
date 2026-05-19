@@ -122,9 +122,9 @@ export default function ChatLayout() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const [theme, setTheme]       = useState<Theme>("dark");
-  const [panel, setPanel]       = useState<Panel>("global");
+  const [panel, setPanel]       = useState<Panel>("users");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [currentConversation, setCurrentConversation] = useState<{ id: string; name: string } | null>({ id: "global_room", name: "Global Chat" });
+  const [currentConversation, setCurrentConversation] = useState<{ id: string; name: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [userConversations, setUserConversations] = useState<any[]>([]);
@@ -1057,9 +1057,15 @@ export default function ChatLayout() {
           {/* Chat header */}
           <div style={{ padding: isMobile ? "0 12px" : "0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${tk.border}`, background:tk.surface, flexShrink:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap: isMobile ? 8 : 12 }}>
-              {isMobile && (
+              {isMobile && currentConversation && (
                 <button 
-                  onClick={() => setMobileView("list")}
+                  onClick={() => {
+                    setMobileView("list");
+                    if (currentConversation.id === "global_room") {
+                        setCurrentConversation(null);
+                        setPanel("users");
+                    }
+                  }}
                   style={{ background: "none", border: "none", color: tk.text, padding: "8px 4px", cursor: "pointer", display: "flex", alignItems: "center" }}
                 >
                   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
