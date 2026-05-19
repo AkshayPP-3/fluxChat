@@ -387,6 +387,7 @@ export default function ChatLayout() {
       setIsUploading(false);
     }
 
+    // Final message object
     const msgData = {
       conversationId: currentConversation.id,
       message: t,
@@ -394,21 +395,24 @@ export default function ChatLayout() {
       senderId: user.id
     };
 
-    // Optimistic Update
-    const tempId = `temp-${Date.now()}`;
-    setMessages(prev => [...prev, {
-        id: tempId,
-        senderId: user.id,
-        text: t,
-        imageUrl: imageUrl,
-        timestamp: new Date()
-    }]);
-
     console.log("Socket - Sending message:", msgData);
-    if (socketRef.current) {
+    if (socketRef.current?.connected) {
         socketRef.current.emit("send_message", msgData);
     } else {
-        console.error("Socket not connected, cannot send message");
+        console.error("Socket not connected, trying to send via fallback REST API");
+        // Fallback to REST API if socket is down
+        fetch(`${API_URL}/api/messages`, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                conversationId: msgData.conversationId,
+                content: msgData.message,
+                imageUrl: msgData.imageUrl
+            })
+        }).catch(err => console.error("REST fallback failed:", err));
     }
 
     setDraft("");
