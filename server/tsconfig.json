@@ -1,12 +1,7 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
     "rootDir": "./",
     "outDir": "./dist",
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
     "module": "NodeNext",
     "target": "ES2023",
     "types": [],
@@ -14,10 +9,10 @@
     "moduleDetection": "force",
     "ignoreDeprecations": "6.0",
     "skipLibCheck": true,
+    "allowJs": true
   },
   "include": [
-    "src/**/*",
-    "generated/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
