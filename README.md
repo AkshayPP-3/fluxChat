@@ -45,7 +45,7 @@ You can explore the live app here: [https://flux-chat-wine.vercel.app](https://f
 
 ### Clone & Install
 ```bash
-git clone https://github.com/binit2-1/fluxChat.git
+git clone https://github.com/AkshayPP-3/fluxChat.git
 cd fluxChat
 
 # Install Client dependencies
