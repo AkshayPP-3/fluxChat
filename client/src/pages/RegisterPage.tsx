@@ -9,7 +9,7 @@ function BubbleBackground() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Syne:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Poppins:wght@600;700;800&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -298,7 +298,7 @@ export default function RegisterPage() {
               <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 10H6V8h12v4z" />
             </svg>
           </div>
-          <div className="nc-mobile-grid" style={{ marginTop:10, fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:"#e0e7ff", letterSpacing:"-0.01em" }}>
+          <div style={{ marginTop:10, fontFamily:"'Poppins',sans-serif", fontSize:22, fontWeight:800, color:"#e0e7ff", letterSpacing:"-0.01em" }}>
             FluxChat
           </div>
           <div style={{ marginTop:4, fontSize:13, color:"rgba(148,163,184,0.6)" }}>

@@ -643,7 +643,7 @@ export default function ChatLayout() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&family=Inter:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&family=Inter:wght@700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body, #root { 
           height: 100dvh; 
@@ -850,7 +850,7 @@ export default function ChatLayout() {
 
           {/* Header */}
           <div style={{ padding:"20px 18px 14px", borderBottom:`1px solid ${tk.border}`, flexShrink:0 }}>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:17, fontWeight:800, color:tk.text, letterSpacing:"-0.01em" }}>
+            <div style={{ fontFamily:"'Poppins',sans-serif", fontSize:17, fontWeight:800, color:tk.text, letterSpacing:"-0.01em" }}>
               {sidebarTitle}
             </div>
             {panel === "global" && (
@@ -1001,7 +1001,7 @@ export default function ChatLayout() {
                     <div style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:"50%", background: (selectedUser ? onlineUsers.includes(selectedUser.id) : true) ? tk.online : tk.offline, border:`3px solid ${tk.surface}`, zIndex: 4 }} />
                   </div>
                   <div>
-                    <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`}</div>
+                    <div style={{ fontFamily:"'Poppins',sans-serif", fontSize:16, fontWeight:800, color:tk.text, textAlign:"center" }}>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : `${profile.firstName} ${profile.lastName}`}</div>
                     <div style={{ fontSize:12, color:tk.textMuted, textAlign:"center", marginTop:2 }}>{selectedUser ? selectedUser.username : profile.username}</div>
                   </div>
                 </div>
@@ -1145,7 +1145,7 @@ export default function ChatLayout() {
                 </svg>
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize: isMobile ? 15 : 18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chatTitle}</div>
+                <div style={{ fontFamily:"'Poppins',sans-serif", fontSize: isMobile ? 15 : 18, fontWeight:800, color:tk.text, letterSpacing:"-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chatTitle}</div>
                 {currentConversation?.id === "global_room" ? (
                   <div style={{ fontSize:10, color:tk.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{registeredUsers.length} members · {onlineUsers.length} online</div>
                 ) : (
