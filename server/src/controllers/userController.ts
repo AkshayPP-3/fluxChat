@@ -15,7 +15,6 @@ export const getAllUsers = async (_:Request,res: Response)=>{
         })
         return res.status(200).json(users);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "internal server error"});
     }
 }
@@ -41,7 +40,6 @@ export const getUserById = async(req:Request,res:Response)=>{
         }
         return res.status(200).json(user);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "internal server error"})
     }
 }
@@ -86,7 +84,6 @@ export const searchUsers = async (req: Request,res:Response)=>{
         })
         return res.status(200).json(users);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "internal server error"});
     }
 }
@@ -114,7 +111,6 @@ export const updateAvatar = async (req: Request, res: Response) => {
 
         return res.status(200).json(updatedUser);
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ message: "internal server error" });
     }
 };
@@ -142,7 +138,6 @@ export const updateProfile = async (req: Request, res: Response) => {
 
         return res.status(200).json(updatedUser);
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ message: "internal server error" });
     }
 };

@@ -64,24 +64,17 @@ export const initSocket = async (server: any)=>{
     const connectedUsers = new Map<string, string>(); // socketId -> userId
 
     io.on("connection",(socket)=>{
-        console.log("user connected:",socket.id);
-
         socket.on("user_online", (userId) => {
-            console.log(`User ${userId} is online on socket ${socket.id}`);
             connectedUsers.set(socket.id, userId);
             const onlineIds = Array.from(new Set(connectedUsers.values()));
-            console.log("Broadcasting online users:", onlineIds);
             io.emit("update_online_users", onlineIds);
         });
 
         socket.on("join_conversation",(conversationId)=>{
             socket.join(conversationId);
-            console.log(`Joined room: ${conversationId}`);
         })
 
         socket.on("send_message", async (data) => {
-            console.log("Socket - Received send_message:", data);
-            
             try {
                 let conversationId = data.conversationId;
 
@@ -103,7 +96,6 @@ export const initSocket = async (server: any)=>{
                 }
 
                 // 2. Save message to DB
-                console.log("Socket - Saving to DB. ConversationId:", conversationId, "Data:", JSON.stringify(data));
                 const savedMsg = await prisma.message.create({
                     data: {
                         content: data.message || null,
@@ -129,26 +121,21 @@ export const initSocket = async (server: any)=>{
                     io.to(data.conversationId).emit("receive_message", broadcastData);
                 }
 
-                console.log("Message saved and broadcasted:", savedMsg.id, "Image:", !!savedMsg.imageUrl);
             } catch (err) {
-                console.error("Socket Error - Failed to save/broadcast message:", err);
             }
         })
 
         socket.on("delete_message", async (messageId) => {
-            console.log("Socket - Received delete_message:", messageId);
             try {
                 await prisma.message.delete({
                     where: { id: messageId }
                 });
                 io.emit("message_deleted", messageId);
             } catch (err) {
-                console.error("Socket Error - Failed to delete message:", err);
             }
         });
 
         socket.on("disconnect", ()=>{
-            console.log("User disconnected: ",socket.id);
             connectedUsers.delete(socket.id);
             io.emit("update_online_users", Array.from(new Set(connectedUsers.values())));
         })

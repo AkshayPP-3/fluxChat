@@ -21,7 +21,6 @@ export const registerUser = async(req:Request,res:Response)=>{
         }
         const hashedPassword = await bcrypt.hash(password,10);
 
-        //create user
         const user = await prisma.user.create({
             data: {
                 firstname,
@@ -31,7 +30,6 @@ export const registerUser = async(req:Request,res:Response)=>{
             }
         })
 
-        // Generate token so frontend can login immediately
         const token = jwt.sign(
             { userId: user.id },
             process.env.JWT_SECRET as string,
@@ -49,7 +47,6 @@ export const registerUser = async(req:Request,res:Response)=>{
             }
         })
     }catch(error){
-        console.log(error);
         return res.status(500).json({message:"Internal server error"})
     }
 }
@@ -74,8 +71,6 @@ export const loginUser = async(req:Request,res:Response)=>{
             return res.status(400).json({message: "Invalid credentials"})
         }
 
-        //generate jwt
-
         const token = jwt.sign(
             { userId: user.id },
             process.env.JWT_SECRET as string,
@@ -94,7 +89,6 @@ export const loginUser = async(req:Request,res:Response)=>{
             },
         });
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "Internal server error"})
     }
 }
@@ -120,7 +114,6 @@ export const getCurrentUser = async(req:Request,res:Response)=>{
         }
         return res.status(200).json(user);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "Internal server error"})
     }
 }

@@ -36,7 +36,6 @@ export const sendMessage = async (req:Request,res:Response)=>{
         })
         return res.status(201).json(message);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "internal server error"})
     }
 }
@@ -49,7 +48,6 @@ export const uploadImage = async (req: Request, res: Response) => {
         const imageUrl = req.file.path;
         return res.status(200).json({ imageUrl });
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -81,7 +79,6 @@ export const getMessages = async(req:Request,res:Response)=>{
         })
         return res.status(200).json(messages);
     }catch(error){
-        console.log(error)
         return res.status(500).json({message: "internal server error"})
     }
 }

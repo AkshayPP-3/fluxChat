@@ -189,7 +189,6 @@ export default function ChatLayout() {
   // Fetch users
   useEffect(() => {
     if (token) {
-      console.log("Fetching users with token:", token);
       fetch(`${API_URL}/api/user`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -198,7 +197,6 @@ export default function ChatLayout() {
         return res.json();
       })
       .then(data => {
-        console.log("Fetched users:", data);
         if (Array.isArray(data)) {
           const formattedUsers = data.map((u: any) => ({
             id: u.id,
@@ -212,7 +210,7 @@ export default function ChatLayout() {
           setRegisteredUsers(formattedUsers);
         }
       })
-      .catch(err => console.error("Error fetching users:", err));
+      .catch(err => {});
 
       // Fetch global chat messages OR private chat messages
       const convoId = currentConversation?.id === "global_room" ? "general_global" : currentConversation?.id;
@@ -233,7 +231,7 @@ export default function ChatLayout() {
             setMessages(formattedMsgs);
           }
         })
-        .catch(err => console.error("Error fetching messages:", err));
+        .catch(err => {});
       }
 
       // Fetch user's conversations (for friends list)
@@ -246,7 +244,7 @@ export default function ChatLayout() {
           setUserConversations(data);
         }
       })
-      .catch(err => console.error("Error fetching conversations:", err));
+      .catch(err => {});
     }
   }, [token, currentConversation]);
 
@@ -261,7 +259,6 @@ export default function ChatLayout() {
       socketRef.current = socket;
 
       socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
         socket.emit("user_online", user.id);
         // Re-join current conversation on connect/reconnect
         const convoId = currentConvoRef.current?.id || "global_room";
@@ -269,13 +266,10 @@ export default function ChatLayout() {
       });
 
       socket.on("update_online_users", (userIds: string[]) => {
-        console.log("Socket - Online users updated:", userIds);
         setOnlineUsers(userIds);
       });
 
       socket.on("receive_message", (data) => {
-        console.log("Socket - Received message:", data);
-        
         // Use a functional update to get the LATEST currentConversation state
         setCurrentConversation(curr => {
           const isMatch = data.conversationId === curr?.id || 
@@ -332,7 +326,6 @@ export default function ChatLayout() {
   useEffect(() => {
     if (socketRef.current?.connected) {
       const convoId = currentConversation?.id || "global_room";
-      console.log("Socket - joining conversation:", convoId);
       socketRef.current.emit("join_conversation", convoId);
     }
   }, [currentConversation]);
@@ -398,7 +391,6 @@ export default function ChatLayout() {
       formData.append("image", selectedImage);
 
       try {
-        console.log("ChatPage - Uploading image...");
         const res = await fetch(`${API_URL}/api/messages/upload`, {
           method: "POST",
           headers: {
@@ -411,9 +403,7 @@ export default function ChatLayout() {
         
         const data = await res.json();
         imageUrl = data.imageUrl;
-        console.log("ChatPage - Image uploaded successfully:", imageUrl);
       } catch (err) {
-        console.error("Error uploading image:", err);
         setIsUploading(false);
         return; 
       }
@@ -428,11 +418,9 @@ export default function ChatLayout() {
       senderId: user.id
     };
 
-    console.log("Socket - Sending message:", msgData);
     if (socketRef.current?.connected) {
         socketRef.current.emit("send_message", msgData);
     } else {
-        console.warn("Socket not connected, trying REST fallback");
         fetch(`${API_URL}/api/messages`, {
             method: "POST",
             headers: { 
@@ -444,7 +432,7 @@ export default function ChatLayout() {
                 content: msgData.message,
                 imageUrl: msgData.imageUrl
             })
-        }).catch(err => console.error("REST fallback failed:", err));
+        }).catch(err => {});
     }
 
     inputRef.current?.focus();
@@ -474,9 +462,7 @@ export default function ChatLayout() {
         setSelectedUser(null);
         if (isMobile) setMobileView("chat");
       }
-    } catch (err) {
-      console.error("Error starting private chat:", err);
-    }
+    } catch (err) {}
   }
 
   async function saveProfile() {
@@ -519,9 +505,7 @@ export default function ChatLayout() {
         const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...storedUser, firstname: data.firstname, lastname: data.lastname, username: data.username }));
       }
-    } catch (err) {
-      console.error("Error saving profile:", err);
-    }
+    } catch (err) {}
   }
 
   function handleLogout() {
@@ -558,9 +542,7 @@ export default function ChatLayout() {
         // Refresh users list to show new avatar everywhere
         setRegisteredUsers(prev => prev.map(u => u.id === profile.id ? { ...u, avatarUrl: data.avatarUrl } : u));
       }
-    } catch (err) {
-      console.error("Error uploading avatar:", err);
-    }
+    } catch (err) {}
   }
 
   // ── Left sidebar heading ──

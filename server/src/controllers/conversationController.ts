@@ -51,7 +51,6 @@ export const getOrCreateConversation = async (req:Request,res:Response)=>{
         })
         return res.status(201).json(conversation);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "Internal server error"});
     }
 }
@@ -74,7 +73,6 @@ export const getUserConversations = async (req:Request,res:Response)=>{
         })
         return res.json(conversations);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "internal server error"})
     }
 }
@@ -95,7 +93,6 @@ export const getGlobalChat = async (_:Request,res:Response)=>{
         })
         return res.json(globalChat);
     }catch(error){
-        console.log(error);
         return res.status(500).json({message: "Internal server error"});
     }
 }
